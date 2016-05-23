@@ -13,13 +13,38 @@
 
 // Enable this switch for Windows XP theme support. If you compile with Delphi 6 or lower you must download and install
 // the Soft Gems Theme Manager package.
-{$define ThemeSupport}
+{.$define ThemeSupport}
 
 // Virtual Treeview can use a tiny but very effective local memory manager for node allocation.
 // The local memory manager was implemented by David Clark from Caelo Software Inc.
 // See below for more info about it.
 {.$define UseLocalMemoryManager}
 
-{.$define TntSupport} // Added by Igor Afanasyev to support unicode-aware inplace editors. This implementation uses
-                     // Troy Wolbrink's TNT controls, which can be found at:
-                     // http://home.ccci.org/wolbrink/tnt/delphi_unicode_controls.htm.
+
+//Lazarus port options
+{$define EnableOLE}
+{.$define EnableNativeTVM}
+{.$define EnablePrint}
+{.$define EnableNCFunctions}
+{$define EnableAdvancedGraphics}
+{$define EnableAlphaBlend}
+{.$define EnableAccessible}
+{$define ThemeSupport}
+{$if defined(LCLWin32) or defined(LCLWinCE)}
+  {$define LCLWin}
+{$endif}
+{.$define DEBUG_VTV}
+{$define USE_DELPHICOMPAT}
+//since
+{$if not defined(USE_DELPHICOMPAT) and not defined(LCLWin)}
+  {$define INCOMPLETE_WINAPI}
+{$endif}
+
+//under linux the performance is poor with threading enabled
+{$ifdef Windows}
+  {$define EnableThreadSupport}
+{$endif}
+
+{$if (FPC_FULLVERSION >= 30100) or defined(CPU64)}
+  {$define PACKARRAYPASCAL}
+{$endif}

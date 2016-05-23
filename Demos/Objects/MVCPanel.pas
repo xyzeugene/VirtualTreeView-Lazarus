@@ -1,5 +1,7 @@
 unit MVCPanel;
 
+{$MODE Delphi}
+
 { (c) 2000 Marian Aldenhövel
            Hainstraße 8
            53121 Bonn
@@ -23,8 +25,9 @@ unit MVCPanel;
 
 interface
 
-uses Windows,Controls,Graphics,SysUtils,Classes,ExtCtrls,StdCtrls,
-     MVCTypes,VirtualTrees;
+uses
+  LCLIntf, Controls, Graphics, SysUtils, Classes, ExtCtrls, StdCtrls,
+  MVCTypes, VirtualTrees;
 
 type TMVCPanel=class(TCustomPanel)
                  private

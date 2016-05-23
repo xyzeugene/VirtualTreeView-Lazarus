@@ -1,5 +1,7 @@
 unit SpeedDemo;
 
+{$MODE Delphi}
+
 // Virtual Treeview sample form demonstrating following features:
 //   - Speed.
 //   - Background image.
@@ -8,8 +10,8 @@ unit SpeedDemo;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, VirtualTrees, ExtDlgs, ComCtrls, jpeg, Menus;
+  LCLIntf, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  StdCtrls, VirtualTrees, ExtDlgs, Menus, LResources, Buttons;
 
 type
   TSpeedForm = class(TForm)
@@ -36,7 +38,7 @@ type
     procedure ClearButtonClick(Sender: TObject);
     procedure AddButtonClick(Sender: TObject);
     procedure VST1GetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-      var CellText: UnicodeString);
+      var CellText: String);
     procedure VST1Change(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure VST1StructureChange(Sender: TBaseVirtualTree; Node: PVirtualNode; Reason: TChangeReason);
     procedure DeleteSelectionButtonClick(Sender: TObject);
@@ -51,9 +53,8 @@ var
 implementation
 
 uses
-  Math, States;
+  States;
 
-{$R *.DFM}
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -141,7 +142,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TSpeedForm.VST1GetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-  var CellText: UnicodeString);
+  var CellText: String);
 
 begin
   CellText := Format('Level %d, Index %d', [Sender.GetNodeLevel(Node), Node.Index]);
@@ -192,6 +193,9 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+
+initialization
+  {$i SpeedDemo.lrs}
 
 end.
 

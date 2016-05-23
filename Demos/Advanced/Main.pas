@@ -1,28 +1,21 @@
 unit Main;
 
+{$MODE Delphi}
+
 // Advanced demo for Virtual Treeview showing various effects and features in several forms.
 // This is the main form which serves as container window for the demo forms.
 // Written by Mike Lischke.
 
 interface
 
-{$include Compilers.inc}
-
-{$ifdef COMPILER_7_UP}
-  // For some things to work we need code, which is classified as being unsafe for .NET.
-  {$warn UNSAFE_TYPE off}
-  {$warn UNSAFE_CAST off}
-  {$warn UNSAFE_CODE off}
-{$endif COMPILER_7_UP}
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ComCtrls, ToolWin, Buttons, ExtCtrls, StdCtrls, ImgList, ActnList,
-  StdActns;
+  LCLIntf, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  ComCtrls, Buttons, ExtCtrls, StdCtrls, ActnList, LResources;
 
 type
   TMainForm = class(TForm)
-    PageScroller1: TPageScroller;
+    PageScroller1: TPanel;
     SpeedDemoButton: TSpeedButton;
     AbilitiesDemoButton: TSpeedButton;
     PropertiesDemoButton: TSpeedButton;
@@ -31,10 +24,7 @@ type
     AlignDemoButton: TSpeedButton;
     QuitButton: TSpeedButton;
     PaintTreeDemoButton: TSpeedButton;
-    Bevel1: TBevel;
     MainPanel: TPanel;
-    Bevel2: TBevel;
-    Bevel3: TBevel;
     StatusBar: TStatusBar;
     ContainerPanel: TPanel;
     Label1: TLabel;
@@ -51,8 +41,7 @@ type
 var
   MainForm: TMainForm;
 
-procedure ConvertToHighColor(ImageList: TImageList);
-procedure LoadUnicodeStrings(Name: string; var Strings: array of UnicodeString);
+procedure LoadUnicodeStrings(const Name: string; var Strings: array of String);
 procedure SetStatusbarText(const S: string);
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -60,62 +49,37 @@ procedure SetStatusbarText(const S: string);
 implementation
 
 uses
-  CommCtrl,
   SpeedDemo, GeneralAbilitiesDemo, DrawTreeDemo, PropertiesDemo,
   GridDemo, VisibilityDemo, AlignDemo, WindowsXPStyleDemo, MultilineDemo, HeaderCustomDrawDemo,
   States;
 
-{$R *.DFM}
-
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure ConvertToHighColor(ImageList: TImageList);
 
-// To show smooth images we have to convert the image list from 16 colors to high color.
-
-var
-  IL: TImageList;
-
-begin
-  // Have to create a temporary copy of the given list, because the list is cleared on handle creation.
-  IL := TImageList.Create(nil);
-  IL.Assign(ImageList);
-
-  with ImageList do
-    Handle := ImageList_Create(Width, Height, ILC_COLOR16 or ILC_MASK, Count, AllocBy);
-  ImageList.Assign(IL);
-  IL.Free;
-end;
-
-//----------------------------------------------------------------------------------------------------------------------
-
-procedure LoadUnicodeStrings(Name: string; var Strings: array of UnicodeString);
+procedure LoadUnicodeStrings(const Name: string; var Strings: array of String);
 
 // Loads the Unicode strings from the resource.
 
 var
-  Stream: TResourceStream;
-  Head, Tail: PWideChar;
+  Res: TLResource;
+  Head, Tail: PChar;
   I: Integer;
-                              
+
 begin
-  Stream := TResourceStream.Create(0, Name, 'Unicode');
-  try
-    Head := Stream.Memory;
-    // Skip byte order mark.
-    Inc(Head);
+  Res := LazarusResources.Find(Name);
+  if (Res <> nil) and (Res.Value <> '') then
+  begin
+    Head := PChar(Res.Value);
     Tail := Head;
     for I := 0 to High(Strings) do
     begin
       Head := Tail;
-      while not (Tail^ in [WideChar(#0), WideChar(#13)]) do
+      while not (Tail^ in [#0, #13]) do
         Inc(Tail);
       SetString(Strings[I], Head, Tail - Head);
       // Skip carriage return and linefeed.
       Inc(Tail, 2);
     end;
-  finally
-    Stream.Free;
   end;
 end;
 
@@ -206,6 +170,10 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+
+initialization
+  {$i Main.lrs}
+  {$i unicode.lrs}
 
 end.
 

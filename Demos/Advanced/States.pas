@@ -1,10 +1,13 @@
 unit States;
 
+{$MODE Delphi}
+{$H+}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, VirtualTrees;
+  LCLIntf, SysUtils, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, VirtualTrees, LResources;
 
 type
   TStateForm = class(TForm)
@@ -77,7 +80,6 @@ procedure UpdateStateDisplay(CurrentStates, Enter, Leave: TVirtualTreeStates);
 
 implementation
 
-{$R *.dfm}
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -209,5 +211,8 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+
+initialization
+  {$i States.lrs}
 
 end.

@@ -1,45 +1,38 @@
 unit WindowsXPStyleDemo;
 
+{$MODE Delphi}
+
 // Virtual Treeview sample form demonstrating following features:
 //   - Windows XP style treeview.
 // Written by Mike Lischke.
 
 interface
 
-{$include Compilers.inc}
-
-{$ifdef COMPILER_7_UP}
-  // For some things to work we need code, which is classified as being unsafe for .NET.
-  {$warn UNSAFE_TYPE off}
-  {$warn UNSAFE_CAST off}
-  {$warn UNSAFE_CODE off}
-{$endif COMPILER_7_UP}
-
 uses
-  {$ifdef VER140}
-    Variants,
-  {$endif}
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, VirtualTrees, ImgList, ComCtrls, ToolWin, Menus, StdCtrls;
+  LCLIntf, SysUtils, Classes, Graphics, Controls, Forms,
+  Dialogs, ComCtrls, VirtualTrees,  Menus, StdCtrls,
+  LResources, Printers, PrintersDlgs, ExtCtrls;
 
 type
+
+  { TWindowsXPForm }
+
   TWindowsXPForm = class(TForm)
+    ToolBar2: TToolBar;
+    ToolButton10: TToolButton;
+    ToolButton11: TToolButton;
+    ToolButton12: TToolButton;
+    ToolButton13: TToolButton;
+    ToolButton14: TToolButton;
+    ToolButton15: TToolButton;
+    ToolButton16: TToolButton;
+    ToolButton7: TToolButton;
     XPTree: TVirtualStringTree;
     LargeImages: TImageList;
     SmallImages: TImageList;
-    CoolBar1: TCoolBar;
-    ToolBar1: TToolBar;
-    ToolButton1: TToolButton;
-    ToolButton2: TToolButton;
-    ToolButton3: TToolButton;
-    ToolButton4: TToolButton;
-    ToolButton5: TToolButton;
-    ToolButton6: TToolButton;
     Label1: TLabel;
     Label2: TLabel;
     Label4: TLabel;
-    ToolButton8: TToolButton;
-    ToolButton9: TToolButton;
     PrintDialog: TPrintDialog;
     procedure XPTreeGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
       Column: TColumnIndex; var Ghosted: Boolean; var Index: Integer);
@@ -48,13 +41,13 @@ type
       var InitialStates: TVirtualNodeInitStates);
     procedure XPTreeInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
     procedure XPTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-      TextType: TVSTTextType; var CellText: UnicodeString);
-    procedure XPTreeHeaderClick(Sender: TVTHeader; Column: TColumnIndex; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
+      TextType: TVSTTextType; var CellText: String);
+    procedure XPTreeHeaderClick(Sender: TVTHeader; Column: TColumnIndex; Button: TMouseButton; Shift: TShiftState;
+      X, Y: Integer);
     procedure XPTreeCompareNodes(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
       var Result: Integer);
     procedure XPTreeGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-      var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: UnicodeString);
+      var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: String);
     procedure Label4Click(Sender: TObject);
     procedure ToolButton9Click(Sender: TObject);
     procedure XPTreeStateChange(Sender: TBaseVirtualTree; Enter, Leave: TVirtualTreeStates);
@@ -68,14 +61,12 @@ var
 implementation
 
 uses
-  Main, ShellAPI, Printers, States;
-
-{$R *.dfm}
+  States;
 
 type
   PEntry = ^TEntry;
   TEntry = record
-    Caption: UnicodeString;
+    Caption: String;
     Image: Integer;
     Size: Int64;
   end;
@@ -131,9 +122,11 @@ procedure TWindowsXPForm.FormCreate(Sender: TObject);
 
 begin
   XPTree.NodeDataSize := SizeOf(TEntry);
-  
-  ConvertToHighColor(LargeImages);
-  ConvertToHighColor(SmallImages);
+  {$ifdef LCLWin32}
+  //enable native look under win32
+  //todo: enable only in winxp
+  XPTree.TreeOptions.PaintOptions := XPTree.TreeOptions.PaintOptions + [toThemeAware];
+  {$endif}
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -169,7 +162,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TWindowsXPForm.XPTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  TextType: TVSTTextType; var CellText: UnicodeString);
+  TextType: TVSTTextType; var CellText: String);
 
 var
   Data: PEntry;
@@ -203,7 +196,7 @@ begin
     begin
       if SortColumn > NoColumn then
         Columns[SortColumn].Options := Columns[SortColumn].Options + [coParentColor];
-
+        
       // Do not sort the last column, it contains nothing to sort.
       if Column = 2 then
         SortColumn := NoColumn
@@ -220,10 +213,8 @@ begin
           else
             SortDirection := sdAscending;
 
-        if SortColumn <> NoColumn then
-          Columns[SortColumn].Color := $F7F7F7;
+        Columns[SortColumn].Color := $F7F7F7;
         SortTree(SortColumn, SortDirection, False);
-
       end;
     end;
   end;
@@ -251,12 +242,12 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TWindowsXPForm.XPTreeGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: UnicodeString);
+  var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: String);
 
 begin
   // Show only a dummy hint. It is just to demonstrate how to do it.
-  HintText := 'Size larger than 536 MB' + #13 +
-    'Folders: addins, AppPatch, Config, Connection Wizard, ...' + #13 +
+  HintText := 'Size larger than 536 MB' + LineEnding +
+    'Folders: addins, AppPatch, Config, Connection Wizard, ...' + LineEnding +
     'Files: 1280.bmp, 1280x1024.bmp, 2001 94 mars.bmp, ac3api.ini, ...';
 end;
 
@@ -265,7 +256,7 @@ end;
 procedure TWindowsXPForm.Label4Click(Sender: TObject);
 
 begin
-  ShellExecute(0, 'open', 'http://groups.yahoo.com/group/VirtualExplorerTree', nil, nil, SW_SHOW);
+  OpenURL('http://groups.yahoo.com/group/VirtualExplorerTree');
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -273,8 +264,9 @@ end;
 procedure TWindowsXPForm.ToolButton9Click(Sender: TObject);
 
 begin
-  if PrintDialog.Execute then
-    XPTree.Print(Printer, False);
+  //todo: implement Print support in VTV
+  //if PrintDialog.Execute then ;
+  //  XPTree.Print(Printer, False);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -287,5 +279,8 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+
+initialization
+  {$i WindowsXPStyleDemo.lrs}
 
 end.
