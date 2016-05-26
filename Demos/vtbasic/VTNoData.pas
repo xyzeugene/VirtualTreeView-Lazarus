@@ -57,7 +57,8 @@ interface
       end;
 
 implementation
-{.$R *.dfm}
+
+   {$R *.lfm}
 
    procedure TfrmVTNoData.FormCreate(Sender: TObject);
    begin
@@ -278,9 +279,6 @@ implementation
       Height := r.Bottom-Top;
       {$endif}
    end;
-
-initialization
-  {$I VTNoData.lrs}
 
 
 end.

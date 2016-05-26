@@ -48,6 +48,8 @@ procedure SetStatusbarText(const S: string);
 
 implementation
 
+{$R *.lfm}
+
 uses
   SpeedDemo, GeneralAbilitiesDemo, DrawTreeDemo, PropertiesDemo,
   GridDemo, VisibilityDemo, AlignDemo, WindowsXPStyleDemo, MultilineDemo, HeaderCustomDrawDemo,
@@ -172,7 +174,6 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 initialization
-  {$i Main.lrs}
   {$i unicode.lrs}
 
 end.

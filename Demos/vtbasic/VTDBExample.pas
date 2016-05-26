@@ -91,7 +91,8 @@ interface
       end;
    
 implementation
-{.$R *.DFM}
+
+   {$R *.lfm}
 
    const
       FLDN_CustNo             = 0;
@@ -509,8 +510,5 @@ implementation
      // which match only partially. Don't forget to specify the shorter string length as search length.
      Result := StrLIComp( pchar(sCompare1), pchar(sCompare2), Min(Length(sCompare1), Length(sCompare2)) )
    end;
-
-initialization
-  {$I VTDBExample.lrs}
 
 end.

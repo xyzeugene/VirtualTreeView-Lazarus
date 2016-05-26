@@ -21,7 +21,7 @@ uses
   Windows,
   {$endif}
   LCLIntf, delphicompat, LCLType, SysUtils, Classes, ComCtrls, Graphics, Controls, Forms, Dialogs,
-  VirtualTrees, StdCtrls,  shlobjext, LResources, FileUtil;
+  VirtualTrees, StdCtrls,  shlobjext, LResources;
 
 type
   TDrawTreeForm = class(TForm)
@@ -67,8 +67,10 @@ var
 
 implementation
 
+{$R *.lfm}
+
 uses
-  States;
+  LazFileUtils, States;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -744,9 +746,6 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
-initialization
-
-  {$I DrawTreeDemo.lrs}
 
 
 end.

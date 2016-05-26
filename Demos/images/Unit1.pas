@@ -74,6 +74,8 @@ var
 
 implementation
 
+{$R *.lfm}
+
 uses Math;
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -309,8 +311,5 @@ begin
 
   end
 end;
-
-initialization
-  {$i Unit1.lrs}
 
 end.

@@ -94,9 +94,9 @@ type
 
   end;
 
-  { TForm1 }
+  { TMainForm }
 
-  TForm1 = class(TForm)
+  TMainForm = class(TForm)
     Button1: TButton;
     btnDelete: TButton;
     Edit1: TEdit;
@@ -135,16 +135,18 @@ type
   end;
 
 var
-  Form1: TForm1;
+  MainForm: TMainForm;
 
   MyArrayData: array of TMyRecord;
 
 implementation
 
+{$R *.lfm}
+
 uses
   Math;
 
-procedure TForm1.MyTreeGetText(Sender: TBaseVirtualTree;
+procedure TMainForm.MyTreeGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
   var CellText: String);
 var
@@ -168,7 +170,7 @@ begin
 
 end;
 
-procedure TForm1.Button1Click(Sender: TObject);
+procedure TMainForm.Button1Click(Sender: TObject);
 var
   Node: PVirtualNode;
   Data: ^rTreeData;
@@ -214,7 +216,7 @@ begin
 
 end;
 
-procedure TForm1.MyTreeCompareNodes(Sender: TBaseVirtualTree; Node1,
+procedure TMainForm.MyTreeCompareNodes(Sender: TBaseVirtualTree; Node1,
   Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
 var
   n1,n2: ^rTreeData;
@@ -240,7 +242,7 @@ begin
   end
 end;
 
-procedure TForm1.MyTreeHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
+procedure TMainForm.MyTreeHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   Direction : TSortDirection;
@@ -272,7 +274,7 @@ begin
   end
 end;
 
-procedure TForm1.btnDeleteClick(Sender: TObject);
+procedure TMainForm.btnDeleteClick(Sender: TObject);
 var
   Timer: cardinal;
 begin
@@ -290,7 +292,7 @@ begin
 
 end;
 
-procedure TForm1.FormCreate(Sender: TObject);
+procedure TMainForm.FormCreate(Sender: TObject);
 const
 
   ColumnParams: array[0..2] of
@@ -406,7 +408,7 @@ begin
 
 end;
 
-procedure TForm1.MyTreeBeforeCellPaint(Sender: TBaseVirtualTree;
+procedure TMainForm.MyTreeBeforeCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 begin
@@ -424,7 +426,7 @@ begin
   end
 end;
 
-procedure TForm1.MyTreePaintText(Sender: TBaseVirtualTree;
+procedure TMainForm.MyTreePaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
 var
@@ -454,7 +456,7 @@ begin
   end;
 end;
 
-procedure TForm1.MyTreeFreeNode(Sender: TBaseVirtualTree;
+procedure TMainForm.MyTreeFreeNode(Sender: TBaseVirtualTree;
   Node: PVirtualNode);
 var
   n1: ^rTreeData;
@@ -477,7 +479,7 @@ begin
 
 end;
 
-procedure TForm1.MyTreeFocusChanged(Sender: TBaseVirtualTree;
+procedure TMainForm.MyTreeFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 var
   n1: ^rTreeData;
@@ -500,12 +502,12 @@ begin
 
 end;
 
-procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   btnCleanAll.Click
 end;
 
-procedure TForm1.btnCleanAllClick(Sender: TObject);
+procedure TMainForm.btnCleanAllClick(Sender: TObject);
 begin
   // Fast deletion of all your data and VST nodes
 
@@ -518,7 +520,7 @@ begin
 
 end;
 
-procedure TForm1.Edit2Change(Sender: TObject);
+procedure TMainForm.Edit2Change(Sender: TObject);
 var
   Node: PVirtualNode;
   ind: integer;
@@ -543,7 +545,5 @@ begin
   end
 end;
 
-initialization
-  {$i Main.lrs}
 
 end.

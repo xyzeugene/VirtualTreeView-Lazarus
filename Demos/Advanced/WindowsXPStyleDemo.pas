@@ -60,6 +60,8 @@ var
 
 implementation
 
+{$R *.lfm}
+
 uses
   States;
 
@@ -280,7 +282,5 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-initialization
-  {$i WindowsXPStyleDemo.lrs}
 
 end.

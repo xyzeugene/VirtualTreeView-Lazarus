@@ -1,10 +1,10 @@
-object Form1: TForm1
+object MainForm: TMainForm
   Left = 188
   Height = 434
   Top = 104
   Width = 648
   ActiveControl = MyTree
-  Caption = 'Form1'
+  Caption = 'Data Array Virtual Tree Demo'
   ClientHeight = 434
   ClientWidth = 648
   Font.Height = -11
@@ -12,30 +12,30 @@ object Form1: TForm1
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '1.7'
   object Label1: TLabel
-    Left = 224
-    Height = 14
-    Top = 348
-    Width = 174
+    Left = 247
+    Height = 13
+    Top = 349
+    Width = 151
     Anchors = [akRight, akBottom]
     Caption = 'Array data  of  the clicked node:'
     ParentColor = False
   end
   object Label2: TLabel
-    Left = 224
-    Height = 14
-    Top = 382
-    Width = 256
+    Left = 259
+    Height = 13
+    Top = 383
+    Width = 221
     Anchors = [akRight, akBottom]
     Caption = 'Find and show the node by specific array index'
     ParentColor = False
   end
   object Label3: TLabel
-    Left = 224
-    Height = 14
-    Top = 398
-    Width = 274
+    Left = 262
+    Height = 13
+    Top = 399
+    Width = 236
     Anchors = [akRight, akBottom]
     Caption = 'Type index to get related tree node on the screen:'
     ParentColor = False
@@ -66,8 +66,8 @@ object Form1: TForm1
     AnchorSideLeft.Control = Label1
     AnchorSideLeft.Side = asrBottom
     Left = 402
-    Height = 23
-    Top = 344
+    Height = 21
+    Top = 346
     Width = 170
     Anchors = [akLeft, akBottom]
     BorderSpacing.Left = 4
@@ -89,8 +89,8 @@ object Form1: TForm1
     AnchorSideLeft.Control = Label3
     AnchorSideLeft.Side = asrBottom
     Left = 502
-    Height = 23
-    Top = 394
+    Height = 21
+    Top = 396
     Width = 97
     Anchors = [akLeft, akBottom]
     BorderSpacing.Left = 4

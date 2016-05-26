@@ -52,6 +52,8 @@ var
 
 implementation
 
+{$R *.lfm}
+
 uses
   States, LclExt;
 
@@ -306,7 +308,6 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 initialization
-  {$i HeaderCustomDrawDemo.lrs}
   {$i bitmap.lrs}
 
 end.

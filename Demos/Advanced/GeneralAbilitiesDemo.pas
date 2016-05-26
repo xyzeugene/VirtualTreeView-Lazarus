@@ -85,6 +85,8 @@ var
 
 implementation
 
+{$R *.lfm}
+
 uses
   States;
 
@@ -565,7 +567,5 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-initialization
-  {$i GeneralAbilitiesDemo.lrs}
 
 end.

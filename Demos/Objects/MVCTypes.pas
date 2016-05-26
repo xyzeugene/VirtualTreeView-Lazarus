@@ -58,7 +58,7 @@ interface
 
 uses
   LCLIntf, Types, SysUtils, Graphics, VirtualTrees, Classes, StdCtrls,
-  Controls, Forms, ImgList, LCLType, DelphiCompat, LMessages;
+  Controls, Forms, ImgList, LCLType, DelphiCompat;
 
 type { TMVCNode is the encapsulation of a single Node in the structure.
        This implementation is a bit bloated because in my project
