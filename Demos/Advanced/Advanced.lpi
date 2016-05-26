@@ -14,6 +14,7 @@
       <XPManifest>
         <DpiAware Value="True"/>
       </XPManifest>
+      <Icon Value="0"/>
       <Resources Count="5">
         <Resource_0 FileName="Res\Lorem ipsum.uni" Type="RCDATA" ResourceName="LOREM IPSUM"/>
         <Resource_1 FileName="Res\Transcriptions.bmp" Type="BITMAP" ResourceName="TRANSCRIPTIONS"/>
@@ -163,5 +164,12 @@
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
+    <Linking>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
   </CompilerOptions>
 </CONFIG>

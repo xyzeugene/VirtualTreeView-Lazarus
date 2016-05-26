@@ -491,7 +491,6 @@ begin
     if Execute then
     begin
       TargetName := FileName;
-      writeln('Filter Index: ', FilterIndex);
       case FilterIndex of
         1: // HTML
           begin
