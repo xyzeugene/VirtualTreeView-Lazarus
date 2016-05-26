@@ -336,7 +336,7 @@ uses
   {$ifdef DEBUG_VTV}
   VTLogger,
   {$endif}
-  LCLType, LResources, LMessages, Types,
+  LCLType, LMessages, Types,
   SysUtils, Classes, Graphics, Controls, Forms, ImgList, StdCtrls, Menus, Printers,
   SyncObjs,  // Thread support
   Clipbrd // Clipboard support
@@ -3878,6 +3878,8 @@ function WrapString(DC: HDC; const S: String; const Bounds: TRect; RTL: Boolean;
 
 implementation
 
+  {$R VirtualTrees.res}
+
 uses
   StrUtils, Math,
   {$ifdef EnableOLE}
@@ -4986,11 +4988,16 @@ procedure InitializeGlobalStructures;
 
 // initialization of stuff global to the unit
 
+var
+  TheInstance: THandle;
+
 begin
   Initialized := True;
 
   // For the drag image a fast MMX blend routine is used. We have to make sure MMX is available.
   MMXAvailable := HasMMX;
+
+  TheInstance := HINSTANCE;
 
   // There is a bug in Win95 and WinME (and potentially in Win98 too) regarding GetDCEx which causes sometimes
   // serious trouble within GDI (see method WMNCPaint).
@@ -5008,15 +5015,15 @@ begin
 
   UtilityImages := TBitmap.Create;
   UtilityImages.Transparent := True;
-  UtilityImages.LoadFromLazarusResource('VT_UTILITIES');
+  UtilityImages.LoadFromResourceName(0, 'VT_UTILITIES');
 
   // Specify an useful timer resolution for timeGetTime.
   timeBeginPeriod(MinimumTimerInterval);
 
   // Delphi (at least version 6 and lower) does not provide a standard split cursor.
   // Hence we have to load our own.
-  Screen.Cursors[crHeaderSplit] := LoadCursorFromLazarusResource('VT_HEADERSPLIT');
-  Screen.Cursors[crVertSplit] := LoadCursorFromLazarusResource('VT_VERTSPLIT');
+  Screen.Cursors[crHeaderSplit] := LoadCursor(TheInstance, 'VT_HEADERSPLIT');
+  Screen.Cursors[crVertSplit] := LoadCursor(TheInstance, 'VT_VERTSPLIT');
   // Clipboard format registration.
   // Native clipboard format. Needs a new identifier and has an average priority to allow other formats to take over.
   // This format is supposed to use the IStream storage format but unfortunately this does not work when
@@ -13120,21 +13127,23 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TBaseVirtualTree.LoadPanningCursors;
-
+var
+  TheInstance: THandle;
 begin
+  TheInstance := HINSTANCE;
   with Screen do
   begin
-    Cursors[crVT_MOVEALL]:=LoadCursorFromLazarusResource('VT_MOVEALL');
-    Cursors[crVT_MOVEEW]:=LoadCursorFromLazarusResource('VT_MOVEEW');
-    Cursors[crVT_MOVENS]:=LoadCursorFromLazarusResource('VT_MOVENS');
-    Cursors[crVT_MOVENW]:=LoadCursorFromLazarusResource('VT_MOVENW');
-    Cursors[crVT_MOVESW]:=LoadCursorFromLazarusResource('VT_MOVESW');
-    Cursors[crVT_MOVESE]:=LoadCursorFromLazarusResource('VT_MOVESE');
-    Cursors[crVT_MOVENE]:=LoadCursorFromLazarusResource('VT_MOVENE');
-    Cursors[crVT_MOVEW]:=LoadCursorFromLazarusResource('VT_MOVEW');
-    Cursors[crVT_MOVEE]:=LoadCursorFromLazarusResource('VT_MOVEE');
-    Cursors[crVT_MOVEN]:=LoadCursorFromLazarusResource('VT_MOVEN');
-    Cursors[crVT_MOVES]:=LoadCursorFromLazarusResource('VT_MOVES');
+    Cursors[crVT_MOVEALL]:=LoadCursor(TheInstance, 'VT_MOVEALL');
+    Cursors[crVT_MOVEEW]:=LoadCursor(TheInstance, 'VT_MOVEEW');
+    Cursors[crVT_MOVENS]:=LoadCursor(TheInstance, 'VT_MOVENS');
+    Cursors[crVT_MOVENW]:=LoadCursor(TheInstance, 'VT_MOVENW');
+    Cursors[crVT_MOVESW]:=LoadCursor(TheInstance, 'VT_MOVESW');
+    Cursors[crVT_MOVESE]:=LoadCursor(TheInstance, 'VT_MOVESE');
+    Cursors[crVT_MOVENE]:=LoadCursor(TheInstance, 'VT_MOVENE');
+    Cursors[crVT_MOVEW]:=LoadCursor(TheInstance, 'VT_MOVEW');
+    Cursors[crVT_MOVEE]:=LoadCursor(TheInstance, 'VT_MOVEE');
+    Cursors[crVT_MOVEN]:=LoadCursor(TheInstance, 'VT_MOVEN');
+    Cursors[crVT_MOVES]:=LoadCursor(TheInstance, 'VT_MOVES');
   end;
 end;
 //----------------------------------------------------------------------------------------------------------------------
@@ -13380,7 +13389,7 @@ begin
             LineTo(Width - 2 , Width div 2);
           end
           else
-            FMinusBM.LoadFromLazarusResource('VT_XPBUTTONMINUS');
+            FMinusBM.LoadFromResourceName(0, 'VT_XPBUTTONMINUS');
           FHotMinusBM.Canvas.Draw(0, 0, FMinusBM);
         end;
       end;
@@ -13422,7 +13431,7 @@ begin
             LineTo(Width div 2, Width - 2);
           end
           else
-            FPlusBM.LoadFromLazarusResource('VT_XPBUTTONPLUS');
+            FPlusBM.LoadFromResourceName(0, 'VT_XPBUTTONPLUS');
           FHotPlusBM.Canvas.Draw(0, 0, FPlusBM);
         end;
       end;
@@ -20294,7 +20303,7 @@ begin
   begin
     FCheckImages := TBitmap.Create;
     FCheckImages.Transparent := True;
-    FCheckImages.LoadFromLazarusResource(CheckImagesStrings[FCheckImageKind]);
+    FCheckImages.LoadFromResourceName(0, CheckImagesStrings[FCheckImageKind]);
   end;
 end;
 
@@ -23328,7 +23337,7 @@ begin
   else
     ImageName := 'VT_MOVENS_BMP';
 
-  FPanningWindow.Image.LoadFromLazarusResource(ImageName);
+  FPanningWindow.Image.LoadFromResourceName(0, ImageName);
 
   FPanningWindow.Show(CreateClipRegion);
 
@@ -32933,7 +32942,6 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 initialization
-  {$I virtualtrees.lrs}
   // Necessary for dynamic package loading.
   Initialized := False;
   NeedToUnitialize := False;
