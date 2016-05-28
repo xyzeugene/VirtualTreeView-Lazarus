@@ -12,7 +12,7 @@ object VisibilityForm: TVisibilityForm
   OnCreate = FormCreate
   OnHide = FormHide
   OnShow = FormShow
-  LCLVersion = '0.9.29'
+  LCLVersion = '1.7'
   object Label17: TLabel
     Left = 368
     Height = 77
@@ -25,10 +25,10 @@ object VisibilityForm: TVisibilityForm
     WordWrap = True
   end
   object Label1: TLabel
-    Left = 504
-    Height = 81
+    Left = -468
+    Height = 16
     Top = 212
-    Width = 296
+    Width = 1268
     Anchors = [akTop, akRight]
     Caption = 'This sample shows how two treeviews can be synchronized. They can even be adjusted so that it looks as if they share the same background. The splitter between the trees is drawn so that is appears nearly invisible.'
     ParentColor = False
@@ -37,10 +37,10 @@ object VisibilityForm: TVisibilityForm
   object Label2: TLabel
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
-    Left = 504
-    Height = 81
-    Top = 301
-    Width = 296
+    Left = -415
+    Height = 16
+    Top = 236
+    Width = 1215
     Anchors = [akTop, akRight]
     BorderSpacing.Top = 8
     Caption = 'The best effect is maybe when doing wheel panning. If you have a wheel mouse then try clicking the middle button (the wheel) in one of the trees and  when the special cursor appears move the mouse around.'
@@ -61,10 +61,10 @@ object VisibilityForm: TVisibilityForm
   object Label4: TLabel
     AnchorSideTop.Control = Label2
     AnchorSideTop.Side = asrBottom
-    Left = 504
-    Height = 33
-    Top = 390
-    Width = 296
+    Left = 414
+    Height = 16
+    Top = 260
+    Width = 386
     Anchors = [akTop, akRight]
     BorderSpacing.Top = 8
     Caption = ' Expand the trees first (Ctrl Shift +, for full expand) see the full effect.'
@@ -87,7 +87,7 @@ object VisibilityForm: TVisibilityForm
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 91
+    ClientHeight = 88
     ClientWidth = 365
     ItemIndex = 0
     Items.Strings = (
@@ -8184,14 +8184,39 @@ object VisibilityForm: TVisibilityForm
       Font.Height = -11
       Font.Name = 'Verdana'
       Header.AutoSizeIndex = 0
-      Header.Columns = <>
+      Header.Columns = <      
+        item
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus, coEditable]
+          Position = 0
+          Text = 'Column 0'
+          Width = 100
+        end      
+        item
+          Position = 1
+          Text = 'Column 1'
+          Width = 100
+        end      
+        item
+          Position = 2
+          Text = 'Column 2'
+          Width = 100
+        end      
+        item
+          Position = 3
+          Text = 'Column 3'
+          Width = 100
+        end      
+        item
+          Position = 4
+          Text = 'Column 4'
+          Width = 100
+        end>
       Header.DefaultHeight = 17
       Header.Font.Color = clNavy
       Header.Font.Height = -13
       Header.Font.Name = 'Verdana'
       Header.Font.Style = [fsBold]
       Header.Height = 24
-      Header.MainColumn = -1
       Header.Options = [hoColumnResize, hoDrag, hoVisible]
       Header.Style = hsFlatButtons
       HintMode = hmTooltip
@@ -8231,6 +8256,7 @@ object VisibilityForm: TVisibilityForm
     Header.DefaultHeight = 17
     Header.Font.Height = -11
     Header.Font.Name = 'MS Sans Serif'
+    Header.Height = 17
     Header.MainColumn = -1
     Header.Options = [hoColumnResize, hoDrag]
     HintMode = hmTooltip
