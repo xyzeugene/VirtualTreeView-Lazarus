@@ -1,5 +1,7 @@
 unit SpeedDemo;
 
+{$MODE Delphi}
+
 // Virtual Treeview sample form demonstrating following features:
 //   - Speed.
 //   - Background image.
@@ -8,8 +10,8 @@ unit SpeedDemo;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, VirtualTrees, ExtDlgs, ComCtrls, jpeg, Menus;
+  LCLIntf, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  StdCtrls, VirtualTrees, ExtDlgs, Menus, LResources, Buttons;
 
 type
   TSpeedForm = class(TForm)
@@ -36,12 +38,11 @@ type
     procedure ClearButtonClick(Sender: TObject);
     procedure AddButtonClick(Sender: TObject);
     procedure VST1GetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-      var CellText: UnicodeString);
+      var CellText: String);
     procedure VST1Change(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure VST1StructureChange(Sender: TBaseVirtualTree; Node: PVirtualNode; Reason: TChangeReason);
     procedure DeleteSelectionButtonClick(Sender: TObject);
     procedure VST1StateChange(Sender: TBaseVirtualTree; Enter, Leave: TVirtualTreeStates);
-    procedure FormCreate(Sender: TObject);
   end;
 
 var
@@ -51,10 +52,11 @@ var
 
 implementation
 
-uses
-  Math, States;
+{$R *.lfm}
 
-{$R *.DFM}
+uses
+  States;
+
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -142,7 +144,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TSpeedForm.VST1GetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-  var CellText: UnicodeString);
+  var CellText: String);
 
 begin
   CellText := Format('Level %d, Index %d', [Sender.GetNodeLevel(Node), Node.Index]);
@@ -185,16 +187,6 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure TSpeedForm.FormCreate(Sender: TObject);
-
-begin
-  // We assign the OnGetText handler manually to keep the demo source code compatible
-  // with older Delphi versions after using UnicodeString instead of WideString.
-  VST1.OnGetText := VST1GetText;
-end;
-
-//----------------------------------------------------------------------------------------------------------------------
-
 procedure TSpeedForm.VST1StateChange(Sender: TBaseVirtualTree; Enter, Leave: TVirtualTreeStates);
 
 begin
@@ -203,6 +195,7 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+
 
 end.
 

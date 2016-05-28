@@ -1,5 +1,8 @@
 unit MultilineDemo;
 
+{$MODE Delphi}
+{$H+}
+
 // Virtual Treeview sample form demonstrating following features:
 //   - Multiline node captions.
 // Written by Mike Lischke.
@@ -7,8 +10,8 @@ unit MultilineDemo;
 interface
 
 uses
-  Windows, SysUtils, Classes, Forms, Controls, Graphics, VirtualTrees,
-  ExtCtrls, StdCtrls, ImgList;
+  LCLIntf, SysUtils, Classes, Forms, Controls, Graphics, VirtualTrees,
+  ExtCtrls, StdCtrls, LResources;
   
 type
   TNodeForm = class(TForm)
@@ -20,7 +23,7 @@ type
       var InitialStates: TVirtualNodeInitStates);
     procedure FormCreate(Sender: TObject);
     procedure MLTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-      TextType: TVSTTextType; var CellText: UnicodeString);
+      TextType: TVSTTextType; var CellText: String);
     procedure MLTreePaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType);
     procedure MLTreeEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
@@ -34,13 +37,14 @@ type
 
 implementation
 
+{$R *.lfm}
+
 uses
   Main, States;
 
-{$R *.dfm}
 
 var
-  DemoText: array[0..29] of UnicodeString;
+  DemoText: array[0..29] of String;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -65,17 +69,13 @@ end;
 procedure TNodeForm.FormCreate(Sender: TObject);
 
 begin
-  // We assign the OnGetText handler manually to keep the demo source code compatible
-  // with older Delphi versions after using UnicodeString instead of WideString.
-  MLTree.OnGetText := MLTreeGetText;
-
-  LoadUnicodeStrings('LoremIpsum', DemoText);
+  LoadUnicodeStrings('Lorem ipsum', DemoText);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TNodeForm.MLTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  TextType: TVSTTextType; var CellText: UnicodeString);
+  TextType: TVSTTextType; var CellText: String);
 
 // Returns the text for the given node. This text was loaded at form creation time from the application resource.
 
@@ -154,5 +154,6 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+
 
 end.

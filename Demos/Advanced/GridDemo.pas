@@ -1,5 +1,8 @@
 unit GridDemo;
 
+{$MODE Delphi}
+
+
 // Virtual Treeview sample form demonstrating following features:
 //   - TVirtualStringTree with enabled grid extensions and a fixed column.
 //   - Owner draw column to simulate a fixed column.
@@ -10,25 +13,29 @@ unit GridDemo;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, VirtualTrees, ImgList;
+  delphicompat, LCLIntf, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  StdCtrls, VirtualTrees, LResources, LCLType, variants;
 
 type
+
+  { TGridForm }
+
   TGridForm = class(TForm)
     VST5: TVirtualStringTree;
     GridLineCheckBox: TCheckBox;
     Label15: TLabel;
     TreeImages: TImageList;
     Label1: TLabel;
-    procedure VST5BeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
-      Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+    procedure VST5BeforeCellPaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure VST5BeforeItemErase(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode; ItemRect: TRect;
       var Color: TColor; var EraseAction: TItemEraseAction);
     procedure VST5CreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
     procedure VST5FocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode: PVirtualNode; OldColumn,
       NewColumn: TColumnIndex; var Allowed: Boolean);
     procedure VST5GetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-      var CellText: UnicodeString);
+      var CellText: String);
     procedure VST5InitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
       var InitialStates: TVirtualNodeInitStates);
     procedure VST5PaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
@@ -38,7 +45,6 @@ type
     procedure VST5AfterCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect);
     procedure VST5StateChange(Sender: TBaseVirtualTree; Enter, Leave: TVirtualTreeStates);
-    procedure VST5FreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
   end;
 
 var
@@ -48,20 +54,17 @@ var
 
 implementation
 
+{$R *.lfm}
+
 uses
   Editors, States;
 
-{$R *.DFM}
 
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TGridForm.FormCreate(Sender: TObject);
 
 begin
-  // We assign the OnGetText handler manually to keep the demo source code compatible
-  // with older Delphi versions after using UnicodeString instead of WideString.
-  VST5.OnGetText := VST5GetText;
-
   VST5.NodeDataSize := SizeOf(TGridData);
 end;
 
@@ -78,7 +81,7 @@ begin
     if Node.Index mod 6 = 0 then
       Color := $49DDEF // $70A33F // $436BFF
     else
-      Color := VST5.Color;
+      Color := VST5.Brush.Color;
     EraseAction := eaColor;
   end;
 end;
@@ -91,15 +94,6 @@ procedure TGridForm.VST5FocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode
 begin
   // Do not allow focusing the indicator column (which is a fixed column).
   Allowed := NewColumn > 0;
-end;
-
-procedure TGridForm.VST5FreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
-var
-  Data: PGridData;
-begin
-  Data := Sender.GetNodeData(Node);
-  Finalize(Data.Value[1]);
-  Finalize(Data.Value[2]);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -137,7 +131,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TGridForm.VST5GetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  TextType: TVSTTextType; var CellText: UnicodeString);
+  TextType: TVSTTextType; var CellText: String);
 
 var
   Data: PGridData;
@@ -146,7 +140,7 @@ begin
   if Column > 0 then
   begin
     Data := Sender.GetNodeData(Node);
-    CellText := Data.Value[Column - 1];
+    CellText := String(Data.Value[Column - 1]);
   end
   else
     CellText := '';
@@ -168,12 +162,12 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure TGridForm.VST5BeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
-  Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
-
+procedure TGridForm.VST5BeforeCellPaint(Sender: TBaseVirtualTree;
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 begin
   // Fill random cells with our own background, but don't touch the currently focused cell.
-  if Assigned(Node) and ((Column <> Sender.FocusedColumn) or (Node <> Sender.FocusedNode)) and
+  if ((Column <> Sender.FocusedColumn) or (Node <> Sender.FocusedNode)) and
     ((Column - 2) = (Integer(Node.Index) mod (VST5.Header.Columns.Count - 1))) then
   begin
     TargetCanvas.Brush.Color := $E0E0E0;
@@ -236,5 +230,6 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+
 
 end.

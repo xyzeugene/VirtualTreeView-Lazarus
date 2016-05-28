@@ -1,5 +1,7 @@
 unit DrawTreeDemo;
 
+{$MODE Delphi}
+
 // Virtual Treeview sample form demonstrating following features:
 //   - General use of TVirtualDrawTree.
 //   - Use of vertical node image alignment.
@@ -11,22 +13,15 @@ unit DrawTreeDemo;
 // more image formats into the application.
 // Otherwise disable the conditional symbol to compile this demo.
 
-{.$define GraphicEx}
-
-// For some things to work we need code, which is classified as being unsafe for .NET.
-// Additionally, there are a few platform warnings, which also have no meaning at all for this project.
-{$warn UNSAFE_TYPE off}
-{$warn UNSAFE_CAST off}
-{$warn UNSAFE_CODE off}
-{$warn SYMBOL_PLATFORM off}
-{$warn UNIT_PLATFORM off}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  VirtualTrees, StdCtrls, {$ifdef GraphicEx} GraphicEx, {$else} JPEG, {$endif}
-  ImgList, ComCtrls;
+  {$ifdef Windows}
+  Windows,
+  {$endif}
+  LCLIntf, delphicompat, LCLType, SysUtils, Classes, ComCtrls, Graphics, Controls, Forms, Dialogs,
+  VirtualTrees, StdCtrls,  shlobjext, LResources;
 
 type
   TDrawTreeForm = class(TForm)
@@ -47,7 +42,8 @@ type
       var Ghosted: Boolean; var Index: Integer);
     procedure VDT1GetNodeWidth(Sender: TBaseVirtualTree; Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       var NodeWidth: Integer);
-    procedure VDT1HeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
+    procedure VDT1HeaderClick(Sender: TVTHeader; Column: TColumnIndex; Button: TMouseButton; Shift: TShiftState; X,
+      Y: Integer);
     procedure VDT1InitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
     procedure VDT1InitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
       var InitialStates: TVirtualNodeInitStates);
@@ -60,7 +56,7 @@ type
     FDriveStrings: string;
     function CanDisplay(const Name: String): Boolean;
     function GetDriveString(Index: Integer): string;
-    function ReadAttributes(const Name: UnicodeString): Cardinal;
+    function ReadAttributes(const Name: String): Cardinal;
     procedure RescaleImage(Source, Target: TBitmap);
   end;
 
@@ -71,10 +67,10 @@ var
 
 implementation
 
-uses
-  FileCtrl, ShellAPI, Mask, ShlObj, ActiveX, States;
+{$R *.lfm}
 
-{$R *.DFM}
+uses
+  LazFileUtils, States;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -84,35 +80,14 @@ type
   PShellObjectData = ^TShellObjectData;
   TShellObjectData = record
     FullPath,
-    Display: UnicodeString;
+    Display: String;
     Attributes: Cardinal;
     OpenIndex,
     CloseIndex: Integer;      // image indices into the system image list
     Image: TBitmap;
-    Properties: UnicodeString;   // some image properties, preformatted
+    Properties: String;   // some image properties, preformatted
   end;
-
-//----------------- utility functions ----------------------------------------------------------------------------------
-
-function IncludeTrailingBackslash(const S: string): string;
-
-begin
-  if not IsPathDelimiter(S, Length(S)) then
-    Result := S + '\'
-  else
-    Result := S;
-end;
-
-//----------------------------------------------------------------------------------------------------------------------
-
-function ExcludeTrailingBackslash(const S: string): string;
-
-begin
-  Result := S;
-  if IsPathDelimiter(Result, Length(Result)) then
-    SetLength(Result, Length(Result) - 1);
-end;
-
+  
 //----------------------------------------------------------------------------------------------------------------------
 
 function HasChildren(const Folder: string): Boolean;
@@ -123,9 +98,10 @@ var
   SR: TSearchRec;
 
 begin
-  Result := FindFirst(IncludeTrailingBackslash(Folder) + '*.*', faReadOnly or faHidden or faSysFile or faArchive, SR) = 0;
+  Result := FindFirstUTF8(IncludeTrailingPathDelimiter(Folder) + {$ifdef Windows}'*.*'{$else}'*'{$endif},
+    faAnyFile, SR) = 0;
   if Result then
-    FindClose(SR);
+    FindCloseUTF8(SR);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -133,15 +109,19 @@ end;
 function GetIconIndex(Name: string; Flags: Cardinal): Integer;
 
 // Returns the index of the system icon for the given file object.
-
+{
 var
   SFI: TSHFileInfo;
-
+}
 begin
+  Result := -1;
+  //todo
+  {
   if SHGetFileInfo(PChar(Name), 0, SFI, SizeOf(TSHFileInfo), Flags) = 0 then
     Result := -1
   else
     Result := SFI.iIcon;
+  }
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -149,43 +129,62 @@ end;
 procedure GetOpenAndClosedIcons(Name: string; var Open, Closed: Integer);
 
 begin
+  //todo
+  Closed := 0;
+  Open := 0;
+  {
   Closed := GetIconIndex(Name, SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
   Open := GetIconIndex(Name, SHGFI_SYSICONINDEX or SHGFI_SMALLICON or SHGFI_OPENICON);
+  }
 end;
 
 //----------------- TDrawTreeForm --------------------------------------------------------------------------------------
 
-procedure TDrawTreeForm.FormCreate(Sender: TObject);
-
+procedure GetLogicalDrivesInfo(var DriveStrings: String; var DriveCount: Integer);
 var
-  SFI: TSHFileInfo;
   I,
-  Count: Integer;
+  BufferSize,
   DriveMap,
   Mask: Cardinal;
 
 begin
-  VDT1.NodeDataSize := SizeOf(TShellObjectData);
-
-  // Fill root level of image tree. Determine which drives are mapped.
-  Count := 0;
+  {$ifdef Windows}
+  DriveCount := 0;
   DriveMap := GetLogicalDrives;
   Mask := 1;
   for I := 0 to 25 do
   begin
     if (DriveMap and Mask) <> 0 then
-      Inc(Count);
+      Inc(DriveCount);
     Mask := Mask shl 1;
   end;
+  BufferSize := GetLogicalDriveStrings(0, nil);
+  SetLength(DriveStrings, BufferSize);
+  GetLogicalDriveStrings(BufferSize, PChar(DriveStrings));
+  {$else}
+  DriveCount := 1;
+  DriveStrings := '/';
+  {$endif}
+end;
+
+procedure TDrawTreeForm.FormCreate(Sender: TObject);
+
+var
+  //SFI: TSHFileInfo;
+  I,
+  Count: Integer;
+
+begin
+  VDT1.NodeDataSize := SizeOf(TShellObjectData);
+  GetLogicalDrivesInfo(FDriveStrings,Count);
   VDT1.RootNodeCount := Count;
-  // Determine drive strings which are used in the initialization process.
-  Count := GetLogicalDriveStrings(0, nil);
-  SetLength(FDriveStrings, Count);
-  GetLogicalDriveStrings(Count, PChar(FDriveStrings));
-  
+
+  //todo
+  {
   SystemImages.Handle := SHGetFileInfo('', 0, SFI, SizeOf(SFI), SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
   SystemImages.ShareImages := True;
-
+  }
+  
   FThumbSize := 200;
 end;
 
@@ -216,8 +215,8 @@ begin
       Add('.ico');
       Add('.jpg');
       Add('.jpeg');
-      Add('.wmf');
-      Add('.emf');
+      //Add('.wmf');
+      //Add('.emf');
     end;
     {$endif}
     FExtensionList.Sort;
@@ -255,20 +254,24 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function TDrawTreeForm.ReadAttributes(const Name: UnicodeString): Cardinal;
+function TDrawTreeForm.ReadAttributes(const Name: String): Cardinal;
 
 // Determines the attributes of the given shell object (file, folder).
 
 const
   SFGAO_CONTENTSMASK = $F0000000; // This value is wrongly defined in ShlObj.
 
-var
-  Desktop: IShellFolder;
+//var
+  //Desktop: IShellFolder;
+  {
   Eaten: Cardinal;
   PIDL: PItemIDList;
   Malloc: IMalloc;
-
+}
 begin
+  Result := 0;
+  //todo
+  {
   // Get the root folder of the shell name space.
   SHGetDesktopFolder(Desktop);
   // While parsing the name also the shell object's attributes are determined.
@@ -278,6 +281,7 @@ begin
   // Don't forget to free the returned PIDL. The shell folder is released automatically.
   SHGetMalloc(Malloc);
   Malloc.Free(PIDL);
+  }
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -335,7 +339,7 @@ begin
   else
   begin
     Picture := TPicture.Create;
-    Data.Display := ExtractFileName(ExcludeTrailingBackslash(Data.FullPath));
+    Data.Display := ExtractFileName(ExcludeTrailingPathDelimiter(Data.FullPath));
     if (Data.Attributes and SFGAO_FOLDER) = 0 then
     try
       try
@@ -386,9 +390,12 @@ begin
       Picture.Free;
     end;
   end;
-  Data.Attributes := ReadAttributes(Data.FullPath);
-  if ((Data.Attributes and SFGAO_HASSUBFOLDER) <> 0) or
-    (((Data.Attributes and SFGAO_FOLDER) <> 0) and HasChildren(Data.FullPath)) then
+  //todo
+
+  //Data.Attributes := ReadAttributes(Data.FullPath);
+  //if ((Data.Attributes and SFGAO_HASSUBFOLDER) <> 0) or
+  //  (((Data.Attributes and SFGAO_FOLDER) <> 0) and HasChildren(Data.FullPath)) then
+  if HasChildren(Data.FullPath) then
     Include(InitialStates, ivsHasChildren);
 
 end;
@@ -417,14 +424,14 @@ procedure TDrawTreeForm.VDT1DrawNode(Sender: TBaseVirtualTree; const PaintInfo: 
 var
   Data: PShellObjectData;
   X: Integer;
-  S: UnicodeString;
+  S: String;
   R: TRect;
 
 begin   
   with Sender as TVirtualDrawTree, PaintInfo do
   begin
     Data := Sender.GetNodeData(Node);
-    if (Column = FocusedColumn) and (Selected[Node]) then
+    if (Column = FocusedColumn) and (Node = FocusedNode) then
       Canvas.Font.Color := clHighlightText
     else
       if (Data.Attributes and SFGAO_COMPRESSED) <> 0 then
@@ -456,7 +463,7 @@ begin
               if (NodeWidth - 2 * Margin) > (Right - Left) then
                 S := ShortenString(Canvas.Handle, S, Right - Left);
             end;
-            DrawTextW(Canvas.Handle, PWideChar(S), Length(S), R, DT_TOP or DT_LEFT or DT_VCENTER or DT_SINGLELINE);
+            DrawText(Canvas.Handle, PChar(S), Length(S), R, DT_TOP or DT_LEFT or DT_VCENTER or DT_SINGLELINE);
           end;
         end;
       1:
@@ -524,35 +531,39 @@ var
 
 begin
   Data := Sender.GetNodeData(Node);
-  if FindFirst(IncludeTrailingBackslash(Data.FullPath) + '*.*', faAnyFile, SR) = 0 then
+  if FindFirstUTF8(IncludeTrailingPathDelimiter(Data.FullPath) + {$ifdef Windows}'*.*'{$else}'*'{$endif},
+    faAnyFile, SR) = 0 then
   begin
     Screen.Cursor := crHourGlass;
     try
       repeat
         if (SR.Name <> '.') and (SR.Name <> '..') then
         begin
-          NewName := IncludeTrailingBackslash(Data.FullPath) + SR.Name;
+          NewName := IncludeTrailingPathDelimiter(Data.FullPath) + SR.Name;
           if (SR.Attr and faDirectory <> 0) or CanDisplay(NewName) then
           begin
             ChildNode := Sender.AddChild(Node);
             ChildData := Sender.GetNodeData(ChildNode);
             ChildData.FullPath := NewName;
-            ChildData.Attributes := ReadAttributes(NewName);
-            if (ChildData.Attributes and SFGAO_FOLDER) = 0 then
-              ChildData.Properties := Format('%n KB, ', [SR.Size / 1024]);
+            ChildData.Attributes := 0; //ReadAttributes(NewName);
+            //if (ChildData.Attributes and SFGAO_FOLDER) = 0 then
+            if (SR.Attr and faDirectory = 0) then
+              ChildData.Properties := Format('%n KB, ', [SR.Size / 1024])
+            else
+              ChildData.Attributes := SFGAO_FOLDER;
             GetOpenAndClosedIcons(ChildData.FullPath, ChildData.OpenIndex, ChildData.CloseIndex);
 
             Sender.ValidateNode(Node, False);
           end;
         end;
-      until FindNext(SR) <> 0;
+      until FindNextUTF8(SR) <> 0;
       ChildCount := Sender.ChildCount[Node];
 
       // finally sort node
       if ChildCount > 0 then
         Sender.Sort(Node, 0, TVirtualStringTree(Sender).Header.SortDirection, False);
     finally
-      FindClose(SR);
+      FindCloseUTF8(SR);
       Screen.Cursor := crDefault;
     end;
   end;
@@ -665,23 +676,24 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure TDrawTreeForm.VDT1HeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
+procedure TDrawTreeForm.VDT1HeaderClick(Sender: TVTHeader; Column: TColumnIndex; Button: TMouseButton; Shift: TShiftState;
+  X, Y: Integer);
 
 // Click handler to switch the column on which will be sorted. Since we cannot sort image data sorting is actually
 // limited to the main column.
 
 begin
-  if HitInfo.Button = mbLeft then
+  if Button = mbLeft then
   begin
     with Sender do
     begin
-      if HitInfo.Column <> MainColumn then
+      if Column <> MainColumn then
         SortColumn := NoColumn
       else
       begin
         if SortColumn = NoColumn then
         begin
-          SortColumn := HitInfo.Column;
+          SortColumn := Column;
           SortDirection := sdAscending;
         end
         else
@@ -734,5 +746,6 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+
 
 end.

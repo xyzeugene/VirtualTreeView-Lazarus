@@ -1,10 +1,13 @@
 unit States;
 
+{$MODE Delphi}
+{$H+}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, VirtualTrees;
+  LCLIntf, SysUtils, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, VirtualTrees, LResources;
 
 type
   TStateForm = class(TForm)
@@ -77,7 +80,8 @@ procedure UpdateStateDisplay(CurrentStates, Enter, Leave: TVirtualTreeStates);
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
+
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -113,7 +117,9 @@ begin
       SetActiveState(CheckBox19, tsLeftButtonDown in NewStates);
       SetActiveState(CheckBox20, tsMouseCheckPending in NewStates);
       SetActiveState(CheckBox21, tsMiddleButtonDown in NewStates);
-      //SetActiveState(CheckBox22, tsNeedScale in NewStates);
+      {$if VTMajorVersion < 5}
+      SetActiveState(CheckBox22, tsNeedScale in NewStates);
+      {$endif}
       SetActiveState(CheckBox23, tsNeedRootCountUpdate in NewStates);
       SetActiveState(CheckBox24, tsOLEDragging in NewStates);
       SetActiveState(CheckBox25, tsOLEDragPending in NewStates);
@@ -209,5 +215,6 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+
 
 end.

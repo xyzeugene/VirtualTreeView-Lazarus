@@ -6,7 +6,7 @@ unit VTAccessibilityFactory;
 // the tree accessible is returned when the tree receives an WM_GETOBJECT message
 // the AccessibleItem is returned when the Accessible is being asked for the first child
 // To create your own IAccessibles, use the VTStandardAccessible unit as a reference,
-// and assign your Accessibles to the variables in the unit's initialization.
+// and assign your Accessibles to the variables in tthe unit's initialization.
 // You only need to add the unit to your project, and voilá, you have an accessible string tree!
 //
 // Written by Marco Zehe. (c) 2007
@@ -14,10 +14,7 @@ unit VTAccessibilityFactory;
 interface
 
 uses
-  {$if CompilerVersion >= 18}
-    oleacc, // MSAA support in Delphi 2006 or higher
-  {$ifend}
-  Classes, VirtualTrees;
+  Classes, oleacc, VirtualTrees;
 
 type
   IVTAccessibleProvider = interface
@@ -35,19 +32,16 @@ type
     procedure UnRegisterAccessibleProvider(AProvider: IVTAccessibleProvider);
   end;
 
-function GetAccessibilityFactory: TVTAccessibilityFactory;
+var
+  VTAccessibleFactory: TVTAccessibilityFactory;
 
 implementation
-
-var
-  VTAccessibleFactory: TVTAccessibilityFactory = nil;
-  AccessibilityAvailable: Boolean = False;
 
 { TVTAccessibilityFactory }
 
 constructor TVTAccessibilityFactory.Create;
 begin
-  inherited Create;
+  inherited;
   FAccessibleProviders := TInterfaceList.Create;
   FAccessibleProviders.Clear;
 end;
@@ -67,15 +61,15 @@ var
 // We'll work top to bottom, from the most complicated to the most simple.
 // The index for these should all be greater than 0, e g the IAccessible for the tree itself should always be registered first, then any IAccessible items.
 begin
-  Result := nil;
+  result := nil;
   if ATree <> nil then
   begin
     if ATree.Accessible = nil then
     begin
       if FAccessibleProviders.Count > 0 then
       begin
-        Result := IVTAccessibleProvider(FAccessibleProviders.Items[0]).CreateIAccessible(ATree);
-        Exit;
+        result := IVTAccessibleProvider(FAccessibleProviders.Items[0]).CreateIAccessible(ATree);
+        exit;
       end;
     end;
     if ATree.AccessibleItem = nil then
@@ -87,18 +81,19 @@ begin
           TmpIAccessible := IVTAccessibleProvider(FAccessibleProviders.Items[I]).CreateIAccessible(ATree);
           if TmpIAccessible <> nil then
           begin
-            Result := TmpIAccessible;
-            Break;
+            result := TmpIAccessible;
+            break;
           end;
         end;
         if TmpIAccessible = nil then
         begin
-          Result := IVTAccessibleProvider(FAccessibleProviders.Items[0]).CreateIAccessible(ATree);
+          result := IVTAccessibleProvider(FAccessibleProviders.Items[0]).CreateIAccessible(ATree);
         end;
       end;
     end
-    else
-      Result := ATree.AccessibleItem;
+    else begin
+      result := ATree.AccessibleItem;
+    end;
   end;
 end;
 
@@ -106,7 +101,7 @@ destructor TVTAccessibilityFactory.Destroy;
 begin
   FAccessibleProviders.Free;
   FAccessibleProviders := nil;
-  inherited Destroy;
+  inherited;
 end;
 
 procedure TVTAccessibilityFactory.RegisterAccessibleProvider(
@@ -124,30 +119,5 @@ begin
   if FAccessibleProviders.IndexOf(AProvider) >= 0 then
     FAccessibleProviders.Remove(AProvider);
 end;
-
-function GetAccessibilityFactory: TVTAccessibilityFactory;
-
-// Accessibility helper function to create a singleton class that will create or return
-// the IAccessible interface for the tree and the focused node.
-
-begin
-  // first, check if we've loaded the library already
-  if not AccessibilityAvailable then
-    AccessibilityAvailable := True;
-  if AccessibilityAvailable then
-  begin
-    // Check to see if the class has already been created.
-    if VTAccessibleFactory = nil then
-      VTAccessibleFactory := TVTAccessibilityFactory.Create;
-    Result := VTAccessibleFactory;
-  end
-  else
-    Result := nil;
-end;
-
-initialization
-
-finalization
-  VTAccessibleFactory.Free;
 
 end.

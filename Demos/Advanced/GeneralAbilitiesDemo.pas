@@ -1,5 +1,7 @@
 unit GeneralAbilitiesDemo;
 
+{$MODE Delphi}
+
 // Virtual Treeview sample form demonstrating following features:
 //   - General use and feel of TVirtualStringTree.
 //   - Themed/non-themed painting.
@@ -16,25 +18,17 @@ unit GeneralAbilitiesDemo;
 
 interface
 
-// For some things to work we need code, which is classified as being unsafe for .NET.
-{$warn UNSAFE_TYPE off}
-{$warn UNSAFE_CAST off}
-{$warn UNSAFE_CODE off}
-{$if CompilerVersion >= 20}
-  {$WARN IMPLICIT_STRING_CAST OFF}
-{$ifend}
-
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, VirtualTrees, ComCtrls, ExtCtrls, ImgList, Menus,
-  StdActns, ActnList, VTHeaderPopup;
+  LCLIntf, LCLType, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  StdCtrls, Buttons, VTHeaderPopup, VirtualTrees, ComCtrls, ExtCtrls, Menus,
+   ActnList,  LResources, ImgList;
 
-type
+type                                        
   TGeneralForm = class(TForm)
     VST2: TVirtualStringTree;
     CheckMarkCombo: TComboBox;
     Label18: TLabel;
-    MainColumnUpDown: TUpDown;
+    MainColumnUpDown: TUpDown;        
     Label19: TLabel;
     BitBtn1: TBitBtn;
     Label8: TLabel;
@@ -55,9 +49,9 @@ type
     procedure VST2InitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
       var InitialStates: TVirtualNodeInitStates);
     procedure VST2InitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
-    procedure VST2NewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; Text: UnicodeString);
+    procedure VST2NewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; Text: String);
     procedure VST2GetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-      var CellText: UnicodeString);
+      var CellText: String);
     procedure VST2PaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType);
     procedure VST2GetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
@@ -91,10 +85,11 @@ var
 
 implementation
 
-uses
-  ShellAPI, Main, States;
+{$R *.lfm}
 
-{$R *.DFM}
+uses
+  States;
+
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -106,7 +101,7 @@ type
   TNodeData2 = record
     Caption,
     StaticText,
-    ForeignText: UnicodeString;
+    ForeignText: String;
     ImageIndex,
     Level: Integer;
   end;
@@ -119,13 +114,12 @@ var
   I: Integer;
 
 begin
-  // We assign these handlers manually to keep the demo source code compatible
-  // with older Delphi versions after using UnicodeString instead of WideString.
-  VST2.OnGetText := VST2GetText;
-  VST2.OnNewText := VST2NewText;
-
-  // Determine if we are running on Windows XP or higher.
-  ThemeRadioGroup.Enabled := CheckWin32Version(5, 1);
+  // Determine if we are running on Windows XP.
+  {$ifdef LCLWin32}
+  ThemeRadioGroup.Enabled := (Win32MajorVersion >= 5) and (Win32MinorVersion >= 1);
+  {$else}
+  ThemeRadioGroup.Enabled := False;
+  {$endif}
   if ThemeRadioGroup.Enabled then
     ThemeRadioGroup.ItemIndex := 0;
 
@@ -135,8 +129,6 @@ begin
   with VST2.Header do
     for I := 0 to Columns.Count - 1 do
       Columns[I].Hint := Columns[I].Hint + #10 + '(Can show further information in hints too.)';
-
-  ConvertToHighColor(TreeImages);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -188,7 +180,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TGeneralForm.VST2GetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  TextType: TVSTTextType; var CellText: UnicodeString);
+  TextType: TVSTTextType; var CellText: String);
 
 // Returns the text as it is stored in the nodes data record.
 
@@ -226,7 +218,7 @@ const
 
 var
   Data: PNodeData2;
-
+  WideStr: WideString;
 begin
   Data := Sender.GetNodeData(Node);
   with Data^ do
@@ -247,25 +239,29 @@ begin
     case Data.Level of
       1:
         begin
-          ForeignText := WideChar($2200);
-          ForeignText := ForeignText + WideChar($2202) + WideChar($221C) + WideChar($221E) + WideChar($2230) +
+          WideStr := WideChar($2200);
+          WideStr := WideStr + WideChar($2202) + WideChar($221C) + WideChar($221E) + WideChar($2230) +
             WideChar($2233) + WideChar($2257) + WideChar($225D) + WideChar($22B6) + WideChar($22BF);
+          ForeignText := UTF8Encode(WideStr);
         end;
       2:
         begin
-          ForeignText := WideChar($32E5);
-          ForeignText := ForeignText + WideChar($32E6) + WideChar($32E7) + WideChar($32E8) + WideChar($32E9);
+          WideStr := WideChar($32E5);
+          WideStr := WideStr + WideChar($32E6) + WideChar($32E7) + WideChar($32E8) + WideChar($32E9);
+          ForeignText := UTF8Encode(WideStr);
         end;
       3:
         begin
-          ForeignText := WideChar($03B1);
-          ForeignText := ForeignText + WideChar($03B2) + WideChar($03B3) + WideChar($03B4) + WideChar($03B5) +
+          WideStr := WideChar($03B1);
+          WideStr := WideStr + WideChar($03B2) + WideChar($03B3) + WideChar($03B4) + WideChar($03B5) +
             WideChar($03B6) + WideChar($03B7) + WideChar($03B8) + WideChar($03B9);
+          ForeignText := UTF8Encode(WideStr);
         end;
       4:
         begin
-          ForeignText := WideChar($20AC);
-          ForeignText := 'nichts ist unmöglich ' + ForeignText;
+          WideStr := WideChar($20AC);
+          WideStr := 'nichts ist unmöglich ' + WideStr;
+          ForeignText := UTF8Encode(WideStr);
         end;
       5:
         begin
@@ -331,7 +327,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TGeneralForm.VST2NewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  Text: UnicodeString);
+  Text: String);
 
 // The caption of a node has been changed, keep this in the node record.
 
@@ -433,7 +429,7 @@ procedure TGeneralForm.VST2FocusChanging(Sender: TBaseVirtualTree; OldNode, NewN
   NewColumn: TColumnIndex; var Allowed: Boolean);
 
 begin
-  Allowed := (NewColumn <= 0) or (NewColumn = 2);
+  Allowed := NewColumn in [0, 2];
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -459,10 +455,7 @@ procedure TGeneralForm.ThemeRadioGroupClick(Sender: TObject);
 begin
   with VST2.TreeOptions do
     if ThemeRadioGroup.ItemIndex = 0 then
-    begin
-      PaintOptions := PaintOptions + [toThemeAware];
-      VST2.CheckImageKind := ckSystemDefault;
-    end
+      PaintOptions := PaintOptions + [toThemeAware]
     else
       PaintOptions := PaintOptions - [toThemeAware];
 
@@ -477,7 +470,7 @@ end;
 procedure TGeneralForm.SaveButtonClick(Sender: TObject);
 
 const
-  HTMLHead : AnsiString = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">'#13#10 +
+  HTMLHead = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">'#13#10 +
     '<html>'#13#10 +
     '  <head>'#13#10 +
     '    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">'#13#10 +
@@ -487,7 +480,7 @@ const
 
 var
   S: string;
-  WS: UnicodeString;
+  WS: WideString;
   Data: Pointer;
   DataSize: Cardinal;
   TargetName: string;
@@ -524,7 +517,14 @@ begin
         4: // Comma separated values ANSI text file
           begin
             TargetName := ChangeFileExt(TargetName, '.csv');
-            S := VST2.ContentToText(tstVisible, {$if CompilerVersion>=23}FormatSettings.{$ifend}ListSeparator);
+            S := VST2.ContentToText(tstVisible, ListSeparator);
+            Data := PChar(S);
+            DataSize := Length(S);
+          end;
+         5: // Unicode UTF-8 text file
+           begin
+            TargetName := ChangeFileExt(TargetName, '.txt');
+            S := VST2.ContentToUTF8(tstVisible, #9);
             Data := PChar(S);
             DataSize := Length(S);
           end;
@@ -565,5 +565,6 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+
 
 end.

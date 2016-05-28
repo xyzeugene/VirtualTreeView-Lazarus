@@ -1,5 +1,7 @@
 unit PropertiesDemo;
 
+{$MODE Delphi}
+
 // Virtual Treeview sample form demonstrating following features:
 //   - Property page like string tree with individual node editors.
 //   - Incremental search.
@@ -8,13 +10,13 @@ unit PropertiesDemo;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, VirtualTrees, ImgList, ExtCtrls;
+  LCLIntf, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  StdCtrls, VirtualTrees, ExtCtrls, LResources, LMessages;
 
 const
   // Helper message to decouple node change handling from edit handling.
-  WM_STARTEDITING = WM_USER + 778;
-  
+  WM_STARTEDITING = LM_USER + 778;
+
 type
   TPropertiesForm = class(TForm)
     VST3: TVirtualStringTree;
@@ -27,22 +29,22 @@ type
     procedure VST3CreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
     procedure VST3Editing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
     procedure VST3GetHint(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-      var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: UnicodeString);
+      var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: String);
     procedure VST3GetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
       var Ghosted: Boolean; var Index: Integer);
     procedure VST3GetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-      var CellText: UnicodeString);
+      var CellText: String);
     procedure VST3InitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
     procedure VST3InitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
       var InitialStates: TVirtualNodeInitStates);
     procedure VST3PaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType);
-    procedure VST3IncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode; const Text: UnicodeString;
+    procedure VST3IncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode; const Text: String;
       var Result: Integer);
     procedure RadioGroup1Click(Sender: TObject);
     procedure VST3StateChange(Sender: TBaseVirtualTree; Enter, Leave: TVirtualTreeStates);
   private
-    procedure WMStartEditing(var Message: TMessage); message WM_STARTEDITING;
+    procedure WMStartEditing(var Message: TLMessage); message WM_STARTEDITING;
   end;
 
 var
@@ -52,28 +54,20 @@ var
 
 implementation
 
+{$R *.lfm}
+
 uses
   Editors, Math, Main, States;
 
-{$R *.DFM}
 
 //----------------- TPropertiesForm ------------------------------------------------------------------------------------
 
 procedure TPropertiesForm.FormCreate(Sender: TObject);
 
 begin
-  // We assign these handlers manually to keep the demo source code compatible
-  // with older Delphi versions after using UnicodeString instead of WideString.
-  VST3.OnGetText := VST3GetText;
-  VST3.OnGetHint := VST3GetHint;
-  VST3.OnIncrementalSearch := VST3IncrementalSearch;
-
   // Always tell the tree how much data space per node it must allocated for us. We can do this here, in the
   // object inspector or in the OnGetNodeDataSize event.
   VST3.NodeDataSize := SizeOf(TPropertyData);
-  // The VCL (D7 and lower) still uses 16 color image lists. We create a high color version explicitely because it
-  // looks so much nicer.
-  ConvertToHighColor(TreeImages);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -114,7 +108,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TPropertiesForm.VST3GetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  TextType: TVSTTextType; var CellText: UnicodeString);
+  TextType: TVSTTextType; var CellText: String);
 
 var
   Data: PPropertyData;
@@ -144,12 +138,12 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TPropertiesForm.VST3GetHint(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: UnicodeString);
+  var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: String);
 
 begin
   // Add a dummy hint to the normal hint to demonstrate multiline hints.
   if (Column = 0) and (Node.Parent <> Sender.RootNode) then
-    HintText := PropertyTexts[Node.Parent.Index, Node.Index, ptkHint] + #13 + '(Multiline hints are supported too).';
+    HintText := PropertyTexts[Node.Parent.Index, Node.Index, ptkHint] + LineEnding + '(Multiline hints are supported too).';
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -206,7 +200,7 @@ begin
       // to start a new edit operation if the last one is still in progress. So we post us a special message and
       // in the message handler we then can start editing the new node. This works because the posted message
       // is first executed *after* this event and the message, which triggered it is finished.
-      PostMessage(Self.Handle, WM_STARTEDITING, WPARAM(Node), 0);
+      PostMessage(Self.Handle, WM_STARTEDITING, PtrInt(Node), 0);
     end;
   end;
 end;
@@ -249,7 +243,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure TPropertiesForm.VST3IncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode; const Text: UnicodeString;
+procedure TPropertiesForm.VST3IncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode; const Text: String;
   var Result: Integer);
 
 var
@@ -257,9 +251,6 @@ var
   PropText: string;
 
 begin
-  // Note: This code requires a proper Unicode/WideString comparation routine which I did not want to link here for
-  // size and clarity reasons. For now strings are (implicitely) converted to ANSI to make the comparation work.
-  // Search is not case sensitive.
   S := Text;
   SetStatusbarText('Searching for: ' + S);
 
@@ -299,7 +290,6 @@ procedure TPropertiesForm.VST3StateChange(Sender: TBaseVirtualTree; Enter, Leave
 
 begin
   if tsIncrementalSearching in Enter then
-    // Note: Unicode will be converted to ANSI here, but for demonstration purposes we accept that for now.
     SetStatusbarText('Searching for: ' + Sender.SearchBuffer);
   if tsIncrementalSearching in Leave then
     SetStatusbarText('');
@@ -310,7 +300,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure TPropertiesForm.WMStartEditing(var Message: TMessage);
+procedure TPropertiesForm.WMStartEditing(var Message: TLMessage);
 
 // This message was posted by ourselves from the node change handler above to decouple that change event and our
 // intention to start editing a node. This is necessary to avoid interferences between nodes editors potentially created
@@ -324,7 +314,7 @@ begin
   // Note: the test whether a node can really be edited is done in the OnEditing event.
   VST3.EditNode(Node, 1);
 end;
-
 //----------------------------------------------------------------------------------------------------------------------
+
 
 end.
