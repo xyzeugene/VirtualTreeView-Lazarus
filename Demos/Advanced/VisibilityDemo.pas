@@ -13,7 +13,7 @@ interface
 
 uses
   LCLIntf, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, VirtualTrees, ComCtrls, ExtCtrls, LResources;
+  StdCtrls, VirtualTrees, ExtCtrls, LResources;
 
 type
   TVisibilityForm = class(TForm)
