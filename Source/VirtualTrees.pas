@@ -7406,30 +7406,27 @@ begin
     if (AutoIndex < 0) or (AutoIndex >= Count) then
       AutoIndex := Count - 1;
 
-    if AutoIndex >= 0 then
+    with FHeader.Treeview do
     begin
-      with FHeader.Treeview do
-      begin
-        if HandleAllocated then
-          RestWidth := ClientWidth
-        else
-          RestWidth := Width;
-      end;
+      if HandleAllocated then
+        RestWidth := ClientWidth
+      else
+        RestWidth := Width;
+    end;
 
-      // Go through all columns and calculate the rest space remaining.
-      for Index := 0 to Count - 1 do
-        if (Index <> AutoIndex) and (coVisible in Items[Index].FOptions) then
-          Dec(RestWidth, Items[Index].Width);
+    // Go through all columns and calculate the rest space remaining.
+    for Index := 0 to Count - 1 do
+      if (Index <> AutoIndex) and (coVisible in Items[Index].FOptions) then
+        Dec(RestWidth, Items[Index].Width);
 
-      with Items[AutoIndex] do
+    with Items[AutoIndex] do
+    begin
+      NewValue := Max(MinWidth, Min(MaxWidth, RestWidth));
+      if Force or (FWidth <> NewValue) then
       begin
-        NewValue := Max(MinWidth, Min(MaxWidth, RestWidth));
-        if Force or (FWidth <> NewValue) then
-        begin
-          FWidth := NewValue;
-          UpdatePositions;
-          FHeader.Treeview.DoColumnResize(AutoIndex);
-        end;
+        FWidth := NewValue;
+        UpdatePositions;
+        FHeader.Treeview.DoColumnResize(AutoIndex);
       end;
     end;
   end;
@@ -31714,6 +31711,8 @@ begin
     DrawFormat := DrawFormat or DT_LEFT;
   DrawText(Canvas.Handle, PChar(S), Length(S), PaintInfo.CellRect, DrawFormat);
   Result := PaintInfo.CellRect.Bottom - PaintInfo.CellRect.Top;
+  if toShowHorzGridLines in TreeOptions.PaintOptions then
+    Inc(Result);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
