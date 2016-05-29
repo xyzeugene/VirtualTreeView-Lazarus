@@ -9726,7 +9726,8 @@ function TVTHeader.HandleHeaderMouseMove(var Message: TLMMouseMove): Boolean;
 
 var
   P: TPoint;
-  I: TColumnIndex;
+  I, AutoIndex, TargetIndex: TColumnIndex;
+  TargetWidth: Integer;
 
 begin
   Result := False;
@@ -9748,11 +9749,40 @@ begin
     else
       if hsColumnWidthTracking in FStates then
       begin
-        if DoColumnWidthTracking(FColumns.FTrackIndex, GetShiftState, FTrackPoint, P) then
+        TargetIndex := FColumns.FTrackIndex;
         if Treeview.UseRightToLeftAlignment then
-            FColumns[FColumns.FTrackIndex].Width := FTrackPoint.X - XPos
+          TargetWidth := FTrackPoint.X - XPos
         else
-            FColumns[FColumns.FTrackIndex].Width := XPos - FTrackPoint.X;
+          TargetWidth := XPos - FTrackPoint.X;
+        if hoAutoResize in Options then
+        begin
+          AutoIndex := FAutoSizeIndex;
+          if (AutoIndex < 0) or (AutoIndex >= Columns.Count) then
+            AutoIndex := Columns.Count - 1;
+          if (AutoIndex < FColumns.FTrackIndex) then
+          begin
+            TargetIndex := FColumns.GetNextVisibleColumn(FColumns.FTrackIndex);
+            if TargetIndex <> InvalidColumn then
+            begin
+              if Treeview.UseRightToLeftAlignment then
+                TargetWidth := FColumns[TargetIndex].Width + (XPos - FColumns[TargetIndex].Left)
+              else
+                TargetWidth := FColumns[TargetIndex].Width + (FColumns[TargetIndex].Left - XPos);
+            end
+            else
+              TargetIndex := FColumns.FTrackIndex;
+          end;
+        end;
+        if DoColumnWidthTracking(FColumns.FTrackIndex, GetShiftState, FTrackPoint, P) then
+        begin
+          {$ifdef DEBUG_VTV}
+          Logger.Send('TrackIndex: %d XPos: %d TrackPoint.X: %d', [FColumns.TrackIndex, XPos, FTrackPoint.x]);
+          Logger.Send('TargetIndex: %d Left: %d OldWidth: %d NewWidth: %d', [TargetIndex, FColumns[TargetIndex].Left,
+            FColumns[TargetIndex].Width, TargetWidth]);
+          {$endif}
+
+          FColumns[TargetIndex].Width := TargetWidth;
+        end;
         HandleHeaderMouseMove := True;
         Result := 0;
       end
