@@ -1281,8 +1281,6 @@ type
     FDragIndex: TColumnIndex;             // index of column currently being dragged
     FDropTarget: TColumnIndex;            // current target column (index) while dragging
     FDropBefore: Boolean;                 // True if drop position is in the left half of a column, False for the right
-                                          // side to drop the dragged column to
-    function GetCount: Integer;
     function GetItem(Index: TColumnIndex): TVirtualTreeColumn;
     function GetNewIndex(P: TPoint; var OldIndex: TColumnIndex): Boolean;
     procedure SetDefaultWidth(Value: Integer);
@@ -1336,7 +1334,6 @@ type
     procedure SaveToStream(const Stream: TStream);
     function TotalWidth: Integer;
 
-    property Count: Integer read GetCount;
     property ClickIndex: TColumnIndex read FClickIndex;
     property DefaultWidth: Integer read FDefaultWidth write SetDefaultWidth default 50;
     property Items[Index: TColumnIndex]: TVirtualTreeColumn read GetItem write SetItem; default;
@@ -6206,18 +6203,18 @@ begin
   FImageIndex := -1;
   FMargin := 4;
   FSpacing := 4;
-  FText := '';
+  //FText := '';
   FOptions := DefaultColumnOptions;
   FAlignment := taLeftJustify;
   FBidiMode := bdLeftToRight;
   FColor := clWindow;
   FLayout := blGlyphLeft;
-  FBonusPixel := False;
+  //FBonusPixel := False;
   FCaptionAlignment := taLeftJustify;
   FCheckType := ctCheckBox;
   FCheckState := csUncheckedNormal;
-  FCheckBox := False;
-  FHasImage := False;
+  //FCheckBox := False;
+  //FHasImage := False;
 
   inherited Create(Collection);
 
@@ -7336,14 +7333,6 @@ destructor TVirtualTreeColumns.Destroy;
 begin
   FHeaderBitmap.Free;
   inherited;
-end;
-
-//----------------------------------------------------------------------------------------------------------------------
-
-function TVirtualTreeColumns.GetCount: Integer;
-
-begin
-  Result := inherited Count;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
