@@ -1070,7 +1070,6 @@ type
     FNeedPositionsFix: Boolean;           // True if FixPositions must still be called after DFM loading or Bidi mode change.
     FClearing: Boolean;                   // True if columns are being deleted entirely.
 
-    function GetCount: Integer;
     function GetItem(Index: TColumnIndex): TVirtualTreeColumn;
     function GetNewIndex(P: TPoint; var OldIndex: TColumnIndex): Boolean;
     procedure SetDefaultWidth(Value: Integer);
@@ -1136,7 +1135,6 @@ type
     procedure SaveToStream(const Stream: TStream);
     function TotalWidth: Integer;
 
-    property Count: Integer read GetCount;
     property ClickIndex: TColumnIndex read FClickIndex;
     property DefaultWidth: Integer read FDefaultWidth write SetDefaultWidth default 50;
     property Items[Index: TColumnIndex]: TVirtualTreeColumn read GetItem write SetItem; default;
@@ -6693,18 +6691,18 @@ begin
   FImageIndex := -1;
   FMargin := 4;
   FSpacing := 3;
-  FText := '';
+  //FText := '';
   FOptions := DefaultColumnOptions;
   FAlignment := taLeftJustify;
   FBiDiMode := bdLeftToRight;
   FColor := clWindow;
   FLayout := blGlyphLeft;
-  FBonusPixel := False;
+  //FBonusPixel := False;
   FCaptionAlignment := taLeftJustify;
   FCheckType := ctCheckBox;
   FCheckState := csUncheckedNormal;
-  FCheckBox := False;
-  FHasImage := False;
+  //FCheckBox := False;
+  //FHasImage := False;
   FDefaultSortDirection := sdAscending;
 
   inherited Create(Collection);
@@ -7850,14 +7848,6 @@ destructor TVirtualTreeColumns.Destroy;
 begin
   FHeaderBitmap.Free;
   inherited;
-end;
-
-//----------------------------------------------------------------------------------------------------------------------
-
-function TVirtualTreeColumns.GetCount: Integer;
-
-begin
-  Result := inherited Count;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
