@@ -30559,6 +30559,9 @@ begin
           if DrawSelectionRect then
           begin
             R := OrderRect(FNewSelRect);
+            //lclheader
+            if hoVisible in FHeader.Options then
+              OffsetRect(R, 0, FHeader.Height);
             // Remap the selection rectangle to the current window of the tree.
             // Since Target has been used for other tasks BaseOffset got the left extent of the target position here.
             OffsetRect(R, -Target.X + BaseOffset - Window.Left, -Target.Y + FOffsetY);
