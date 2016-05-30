@@ -10488,6 +10488,9 @@ begin
         with TLMLButtonDblClk(Message) do
           P := Point(XPos, YPos);
 
+        IsInHeader := InHeader(P);
+        Result := IsInHeader;
+
         if (hoHeightDblClickResize in FOptions) and InHeaderSplitterArea(P) and (FDefaultHeight > 0) then
         begin
           if DoHeightDblClickResize(P, GetShiftState) and (FDefaultHeight > 0) then
@@ -10504,7 +10507,7 @@ begin
           Message.Result := 0;
           Result := True;
         end
-        else if InHeader(P) and (Message.Msg <> LM_LBUTTONDBLCLK) then
+        else if IsInHeader and (Message.Msg <> LM_LBUTTONDBLCLK) then
         begin
           case Message.Msg of
             LM_MBUTTONDBLCLK:
@@ -10587,9 +10590,9 @@ begin
               // Disabled columns do not start a drag operation because they can't be clicked.
               Include(FStates, hsDragPending);
               SetCapture(Treeview.Handle);
-              Result := True;
               Message.Result := 0;
             end;
+            Result := True;
           end;
 
         // This is a good opportunity to notify the application.
@@ -25210,9 +25213,11 @@ begin
           //lclheader
           //let the header handle the message here
           //otherwise no header click event will be fired
-          FHeader.HandleMessage(Message);
-          ControlState := ControlState + [csLButtonDown];
-          Dispatch(Message);  // overrides TControl's BeginDrag
+          if not FHeader.HandleMessage(Message) then
+          begin
+            ControlState := ControlState + [csLButtonDown];
+            Dispatch(Message);  // overrides TControl's BeginDrag
+          end;
         end;
       end;
     end;
