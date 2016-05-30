@@ -33765,6 +33765,8 @@ begin
     DrawFormat := DrawFormat or DT_LEFT;
   DrawText(Canvas.Handle, PChar(S), Length(S), PaintInfo.CellRect, DrawFormat);
   Result := PaintInfo.CellRect.Bottom - PaintInfo.CellRect.Top;
+  if toShowHorzGridLines in TreeOptions.PaintOptions then
+    Inc(Result);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
