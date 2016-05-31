@@ -9,7 +9,7 @@ interface
 
 uses
   VirtualTrees, VTHeaderPopup, registervirtualtreeview, VTGraphics, 
-  LazarusPackageIntf;
+  VTIDEEditors, LazarusPackageIntf;
 
 implementation
 

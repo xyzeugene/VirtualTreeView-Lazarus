@@ -40,7 +40,7 @@ end;"/>
     <License Value=" Mozilla Public License 1.1 (MPL 1.1) or GNU Lesser General Public License
 "/>
     <Version Major="4" Minor="8" Release="7" Build="3"/>
-    <Files Count="7">
+    <Files Count="8">
       <Item1>
         <Filename Value="VirtualTrees.pas"/>
         <UnitName Value="VirtualTrees"/>
@@ -70,15 +70,22 @@ end;"/>
         <Filename Value="VirtualTrees.res"/>
         <Type Value="Binary"/>
       </Item7>
+      <Item8>
+        <Filename Value="VTIDEEditors.pas"/>
+        <UnitName Value="VTIDEEditors"/>
+      </Item8>
     </Files>
-    <RequiredPkgs Count="2">
+    <RequiredPkgs Count="3">
       <Item1>
-        <PackageName Value="lclextensions_package"/>
-        <MinVersion Minor="5" Valid="True"/>
+        <PackageName Value="IDEIntf"/>
       </Item1>
       <Item2>
-        <PackageName Value="LCL"/>
+        <PackageName Value="lclextensions_package"/>
+        <MinVersion Minor="5" Valid="True"/>
       </Item2>
+      <Item3>
+        <PackageName Value="LCL"/>
+      </Item3>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>
