@@ -10307,18 +10307,19 @@ begin
       HandleHeaderMouseMove := True;
       Result := 0;
     end
-    else if hsHeightTrackPending in FStates then
-    begin
-      FStates := FStates - [hsHeightTrackPending] + [hsHeightTracking];
-      HandleHeaderMouseMove := True;
-      Result := 0;
-    end
     else
-      if hsColumnWidthTracking in FStates then
+      if hsHeightTrackPending in FStates then
       begin
-        if DoColumnWidthTracking(FColumns.FTrackIndex, GetShiftState, FTrackPoint, P) then
+        FStates := FStates - [hsHeightTrackPending] + [hsHeightTracking];
+        HandleHeaderMouseMove := True;
+        Result := 0;
+      end
+      else
+        if hsColumnWidthTracking in FStates then
+        begin
+          if DoColumnWidthTracking(FColumns.FTrackIndex, GetShiftState, FTrackPoint, P) then
           begin
-        if Treeview.UseRightToLeftAlignment then
+            if Treeview.UseRightToLeftAlignment then
             begin
               NewWidth := FTrackPoint.X - XPos;
               NextColumn := FColumns.GetPreviousVisibleColumn(FColumns.FTrackIndex);
@@ -10337,56 +10338,57 @@ begin
                (FColumns[FColumns.FTrackIndex].FMaxWidth > NewWidth) then
               FColumns[NextColumn].Width := FColumns[NextColumn].Width - NewWidth
                                             + FColumns[FColumns.FTrackIndex].Width
-        else
-          FColumns[FColumns.FTrackIndex].Width := NewWidth; // 1 EListError seen here (List index out of bounds (-1)) since 10/2013
-        HandleHeaderMouseMove := True;
-        Result := 0;
-      end
-      else if hsHeightTracking in FStates then
-      begin
-        //lclheader
-        //fixes setting height
-        Dec(P.Y, FHeight);
-        if DoHeightTracking(P, GetShiftState) then
-          SetHeight(Integer(FHeight) + P.Y);
-        HandleHeaderMouseMove := True;
-        Result := 0;
-      end
-      else
-      begin
-        if hsDragPending in FStates then
-        begin
-          P := Treeview.ClientToScreen(P);
-          // start actual dragging if allowed
-          if (hoDrag in FOptions) and Treeview.DoHeaderDragging(FColumns.FDownIndex) then
-          begin
-            if ((Abs(FDragStart.X - P.X) > DragManager.DragThreshold) or
-               (Abs(FDragStart.Y - P.Y) > DragManager.DragThreshold)) then
-            begin
-              {$ifdef DEBUG_VTV}Logger.Send([lcDrag], 'HandleHeaderMouseMove - DragIndex: %d - DownIndex: %d',
-                [FColumns.FDragIndex, FColumns.FDownIndex]);{$endif}
-              I := FColumns.FDownIndex;
-              FColumns.FDownIndex := NoColumn;
-              FColumns.FHoverIndex := NoColumn;
-              if I > NoColumn then
-                Invalidate(FColumns[I]);
-              //todo: implement drag image under gtk
-              PrepareDrag(P, FDragStart);
-              FStates := FStates - [hsDragPending] + [hsDragging];
-              HandleHeaderMouseMove := True;
-              Result := 0;
-            end;
+            else
+              FColumns[FColumns.FTrackIndex].Width := NewWidth; // 1 EListError seen here (List index out of bounds (-1)) since 10/2013
           end;
+          HandleHeaderMouseMove := True;
+          Result := 0;
         end
         else
-          if hsDragging in FStates then
+          if hsHeightTracking in FStates then
           begin
-            DragTo(Treeview.ClientToScreen(P));
+            //lclheader
+            //fixes setting height
+            Dec(P.Y, FHeight);
+            if DoHeightTracking(P, GetShiftState) then
+              SetHeight(Integer(FHeight) + P.Y);
             HandleHeaderMouseMove := True;
             Result := 0;
+          end
+          else
+          begin
+            if hsDragPending in FStates then
+            begin
+              P := Treeview.ClientToScreen(P);
+              // start actual dragging if allowed
+              if (hoDrag in FOptions) and Treeview.DoHeaderDragging(FColumns.FDownIndex) then
+              begin
+                if ((Abs(FDragStart.X - P.X) > DragManager.DragThreshold) or
+                   (Abs(FDragStart.Y - P.Y) > DragManager.DragThreshold)) then
+                begin
+              {$ifdef DEBUG_VTV}Logger.Send([lcDrag], 'HandleHeaderMouseMove - DragIndex: %d - DownIndex: %d',
+                [FColumns.FDragIndex, FColumns.FDownIndex]);{$endif}
+                  I := FColumns.FDownIndex;
+                  FColumns.FDownIndex := NoColumn;
+                  FColumns.FHoverIndex := NoColumn;
+                  if I > NoColumn then
+                    Invalidate(FColumns[I]);
+              //todo: implement drag image under gtk
+                  PrepareDrag(P, FDragStart);
+                  FStates := FStates - [hsDragPending] + [hsDragging];
+                  HandleHeaderMouseMove := True;
+                  Result := 0;
+                end;
+              end;
+            end
+            else
+              if hsDragging in FStates then
+              begin
+                DragTo(Treeview.ClientToScreen(P));
+                HandleHeaderMouseMove := True;
+                Result := 0;
+              end;
           end;
-      end;
-    end;
   end;
 end;
 
@@ -10440,15 +10442,16 @@ begin
       begin
         if not (tsWindowCreating in FOwner.FStates) then
           if (hoAutoResize in FOptions) and not (hsAutoSizing in FStates) then
-        begin
-          FColumns.AdjustAutoSize(InvalidColumn);
-          Invalidate(nil);
-          end
-          else if not (hsScaling in FStates) then
           begin
-            RescaleHeader;
+            FColumns.AdjustAutoSize(InvalidColumn);
             Invalidate(nil);
-        end;
+          end
+          else
+            if not (hsScaling in FStates) then
+            begin
+              RescaleHeader;
+              Invalidate(nil);
+            end;
       end;
     CM_PARENTFONTCHANGED:
       if FParentFont then
@@ -10497,31 +10500,33 @@ begin
             SetHeight(FMinHeight);
           Result := True;
         end
-        else if HSplitterHit and (Message.Msg = LM_LBUTTONDBLCLK) and
-          (hoDblClickResize in FOptions) and (FColumns.FTrackIndex > NoColumn) then
-        begin
-          // If the click was on a splitter then resize column to smallest width.
-          if DoColumnWidthDblClickResize(FColumns.FTrackIndex, P, GetShiftState) then
+        else
+          if HSplitterHit and (Message.Msg = LM_LBUTTONDBLCLK) and
+             (hoDblClickResize in FOptions) and (FColumns.FTrackIndex > NoColumn) then
+          begin
+            // If the click was on a splitter then resize column to smallest width.
+            if DoColumnWidthDblClickResize(FColumns.FTrackIndex, P, GetShiftState) then
               AutoFitColumns(True, smaUseColumnOption, FColumns[FColumns.FTrackIndex].FPosition,
                              FColumns[FColumns.FTrackIndex].FPosition);
-          Message.Result := 0;
-          Result := True;
-        end
-        else if IsInHeader and (Message.Msg <> LM_LBUTTONDBLCLK) then
-        begin
-          case Message.Msg of
-            LM_MBUTTONDBLCLK:
-              Button := mbMiddle;
-            LM_RBUTTONDBLCLK:
-              Button := mbRight;
+            Message.Result := 0;
+            Result := True;
+          end
           else
-            // WM_NCLBUTTONDBLCLK
-            Button := mbLeft;
-          end;
-          if Button = mbLeft then
-            Columns.AdjustDownColumn(P);
-          FColumns.HandleClick(P, Button, True, True);
-        end;
+            if IsInHeader and (Message.Msg <> LM_LBUTTONDBLCLK) then
+            begin
+              case Message.Msg of
+                LM_MBUTTONDBLCLK:
+                  Button := mbMiddle;
+                LM_RBUTTONDBLCLK:
+                  Button := mbRight;
+                else
+                  // WM_NCLBUTTONDBLCLK
+                  Button := mbLeft;
+              end;
+              if Button = mbLeft then
+                Columns.AdjustDownColumn(P);
+              FColumns.HandleClick(P, Button, True, True);
+            end;
       end;
     // The "hot" area of the headers horizontal splitter is partly within the client area of the the tree, so we need
     // to handle WM_LBUTTONDOWN here, too.
