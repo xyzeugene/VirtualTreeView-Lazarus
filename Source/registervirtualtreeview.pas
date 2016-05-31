@@ -4,14 +4,15 @@ unit registervirtualtreeview;
 {$H+}
 
 interface
-
-uses 
-  Classes, SysUtils, LResources, LazarusPackageIntf,
-  VirtualTrees, VTHeaderPopup;
   
 procedure Register;
 
 implementation
+
+uses
+  Classes, SysUtils, LResources, LazarusPackageIntf,
+  VirtualTrees, VTHeaderPopup, VTIDEEditors, ComponentEditors;
+
 
 procedure RegisterUnitVirtualTrees;
 begin
@@ -26,9 +27,10 @@ end;
 procedure Register;
 
 begin
+  RegisterComponentEditor([TVirtualDrawTree, TVirtualStringTree], TVirtualTreeEditor);
   RegisterUnit('VirtualTrees', @RegisterUnitVirtualTrees);
   RegisterUnit('VTHeaderPopup', @RegisterUnitVTHeaderPopup);
-end; 
+end;
 
 initialization
 {$i ideicons.lrs}

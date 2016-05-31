@@ -2,21 +2,22 @@
   This source is only used to compile and install the package.
  }
 
-unit virtualtreeview_package; 
+unit virtualtreeview_package;
 
+{$warn 5023 off : no warning about unused units}
 interface
 
 uses
   VirtualTrees, VTHeaderPopup, registervirtualtreeview, VTGraphics, 
-  LazarusPackageIntf;
+  VTIDEEditors, LazarusPackageIntf;
 
 implementation
 
-procedure Register; 
+procedure Register;
 begin
-  RegisterUnit('registervirtualtreeview', @registervirtualtreeview.Register); 
-end; 
+  RegisterUnit('registervirtualtreeview', @registervirtualtreeview.Register);
+end;
 
 initialization
-  RegisterPackage('virtualtreeview_package', @Register); 
+  RegisterPackage('virtualtreeview_package', @Register);
 end.
