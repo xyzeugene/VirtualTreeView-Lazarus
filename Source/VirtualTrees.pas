@@ -103,7 +103,7 @@ const
 
   VTMajorVersion = 5;
   VTMinorVersion = 5;
-  VTReleaseVersion = 1;
+  VTReleaseVersion = 3;
   VTTreeStreamVersion = 2;
   VTHeaderStreamVersion = 6;    // The header needs an own stream version to indicate changes only relevant to the header.
 
@@ -8160,6 +8160,8 @@ var
   NewClickIndex: Integer;
 
 begin
+  if (csDesigning in Header.Treeview.ComponentState) then
+    exit;
   // Convert vertical position to local coordinates.
   //lclheader
   //Inc(P.Y, FHeader.FHeight);
@@ -14294,6 +14296,7 @@ begin
               lNodeHeight := Child.NodeHeight;
               DoMeasureItem(Canvas, Child, lNodeHeight);
               Child.NodeHeight := lNodeHeight;
+              Child.TotalHeight := lNodeHeight;
             end;
             Inc(NewHeight, Child.NodeHeight);
           end;
@@ -26318,8 +26321,10 @@ begin
       end;
     end;
 
-    if FUpdateCount = 0 then
-      DoUpdating(usEnd)
+    if FUpdateCount = 0 then begin
+      DoUpdating(usEnd);
+      EnsureNodeSelected();
+    end
     else
       DoUpdating(usUpdate);
   end;
@@ -32994,8 +32999,8 @@ begin
     //       for 9x/Me.
     if vsMultiline in Node.States then
     begin
-      Height := ComputeNodeHeight(Canvas, Node, Column);
       DoPaintText(Node, Canvas, Column, ttNormal);
+      Height := ComputeNodeHeight(Canvas, Node, Column);
       // Disabled node color overrides all other variants.
       if (vsDisabled in Node.States) or not Enabled then
         Canvas.Font.Color := FColors.DisabledColor;

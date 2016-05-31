@@ -808,7 +808,7 @@ begin
   if (Node = RootNode) or (Node = nil) then
     Result := nil
   else
-    Result := PChar(Node) + FInternalDataOffset;
+    Result := PByte(Node) + FInternalDataOffset;
 end;
 
 function TMVCTreeView.InternalDataSize: Cardinal;
