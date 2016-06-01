@@ -22,6 +22,7 @@ uses
   States in 'States.pas' {StateForm}, Printer4Lazarus;
 
 {$R *.res}
+{$R extraresources.res}
 
 begin
   Application.Initialize;
