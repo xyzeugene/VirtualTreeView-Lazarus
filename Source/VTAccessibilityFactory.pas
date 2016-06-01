@@ -6,7 +6,7 @@ unit VTAccessibilityFactory;
 // the tree accessible is returned when the tree receives an WM_GETOBJECT message
 // the AccessibleItem is returned when the Accessible is being asked for the first child
 // To create your own IAccessibles, use the VTStandardAccessible unit as a reference,
-// and assign your Accessibles to the variables in tthe unit's initialization.
+// and assign your Accessibles to the variables in the unit's initialization.
 // You only need to add the unit to your project, and voilá, you have an accessible string tree!
 //
 // Written by Marco Zehe. (c) 2007
@@ -22,26 +22,30 @@ type
   end;
 
   TVTAccessibilityFactory = class(TObject)
-  private
+  strict private class var
+    FAccessibilityAvailable: Boolean;
+    FVTAccessibleFactory: TVTAccessibilityFactory;
+  strict private
     FAccessibleProviders: TInterfaceList;
+  private
+    class procedure FreeFactory;
   public
     constructor Create;
     destructor Destroy; override;
     function CreateIAccessible(ATree: TBaseVirtualTree): IAccessible;
+    class function GetAccessibilityFactory: TVTAccessibilityFactory; static;
     procedure RegisterAccessibleProvider(AProvider: IVTAccessibleProvider);
     procedure UnRegisterAccessibleProvider(AProvider: IVTAccessibleProvider);
   end;
 
-var
-  VTAccessibleFactory: TVTAccessibilityFactory;
-
+  
 implementation
 
 { TVTAccessibilityFactory }
 
 constructor TVTAccessibilityFactory.Create;
 begin
-  inherited;
+  inherited Create;
   FAccessibleProviders := TInterfaceList.Create;
   FAccessibleProviders.Clear;
 end;
@@ -61,15 +65,15 @@ var
 // We'll work top to bottom, from the most complicated to the most simple.
 // The index for these should all be greater than 0, e g the IAccessible for the tree itself should always be registered first, then any IAccessible items.
 begin
-  result := nil;
+  Result := nil;
   if ATree <> nil then
   begin
     if ATree.Accessible = nil then
     begin
       if FAccessibleProviders.Count > 0 then
       begin
-        result := IVTAccessibleProvider(FAccessibleProviders.Items[0]).CreateIAccessible(ATree);
-        exit;
+        Result := IVTAccessibleProvider(FAccessibleProviders.Items[0]).CreateIAccessible(ATree);
+        Exit;
       end;
     end;
     if ATree.AccessibleItem = nil then
@@ -81,19 +85,18 @@ begin
           TmpIAccessible := IVTAccessibleProvider(FAccessibleProviders.Items[I]).CreateIAccessible(ATree);
           if TmpIAccessible <> nil then
           begin
-            result := TmpIAccessible;
-            break;
+            Result := TmpIAccessible;
+            Break;
           end;
         end;
         if TmpIAccessible = nil then
         begin
-          result := IVTAccessibleProvider(FAccessibleProviders.Items[0]).CreateIAccessible(ATree);
+          Result := IVTAccessibleProvider(FAccessibleProviders.Items[0]).CreateIAccessible(ATree);
         end;
       end;
     end
-    else begin
-      result := ATree.AccessibleItem;
-    end;
+    else
+      Result := ATree.AccessibleItem;
   end;
 end;
 
@@ -101,7 +104,12 @@ destructor TVTAccessibilityFactory.Destroy;
 begin
   FAccessibleProviders.Free;
   FAccessibleProviders := nil;
-  inherited;
+  inherited Destroy;
+end;
+
+class procedure TVTAccessibilityFactory.FreeFactory;
+begin
+  FVTAccessibleFactory.Free;
 end;
 
 procedure TVTAccessibilityFactory.RegisterAccessibleProvider(
@@ -120,4 +128,30 @@ begin
     FAccessibleProviders.Remove(AProvider);
 end;
 
+class function TVTAccessibilityFactory.GetAccessibilityFactory: TVTAccessibilityFactory;
+// Accessibility helper function to create a singleton class that will create or return
+// the IAccessible interface for the tree and the focused node.
+
+begin
+  // first, check if we've loaded the library already
+  if not FAccessibilityAvailable then
+    FAccessibilityAvailable := True;
+  if FAccessibilityAvailable then
+  begin
+    // Check to see if the class has already been created.
+    if FVTAccessibleFactory = nil then
+      FVTAccessibleFactory := TVTAccessibilityFactory.Create;
+    Result := FVTAccessibleFactory;
+  end
+  else
+    Result := nil;
+end;
+
+initialization
+
+finalization
+  TVTAccessibilityFactory.FreeFactory;
+
 end.
+
+

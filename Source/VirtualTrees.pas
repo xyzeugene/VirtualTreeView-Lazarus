@@ -101,9 +101,9 @@ const
     {$define ContextMenuBeforeMouseUp}
   {$endif}
 
-  VTMajorVersion = 5;
-  VTMinorVersion = 5;
-  VTReleaseVersion = 1;
+  VTMajorVersion = 6;
+  VTMinorVersion = 0;
+  VTReleaseVersion = 0;
   VTTreeStreamVersion = 2;
   VTHeaderStreamVersion = 6;    // The header needs an own stream version to indicate changes only relevant to the header.
 
@@ -1908,18 +1908,18 @@ type
 
   PVTVirtualNodeEnumeration = ^TVTVirtualNodeEnumeration;
 
-  TVTVirtualNodeEnumerator = {$ifdef COMPILER_10_UP}record{$else}class{$endif}
+  TVTVirtualNodeEnumerator = record
   private
     FNode: PVirtualNode;
     FCanModeNext: Boolean;
     FEnumeration: PVTVirtualNodeEnumeration;
-    function GetCurrent: PVirtualNode; {$ifdef COMPILER_10_UP}inline;{$endif}
+    function GetCurrent: PVirtualNode; inline;
   public
-    function MoveNext: Boolean; {$ifdef COMPILER_10_UP}inline;{$endif}
+    function MoveNext: Boolean; inline;
     property Current: PVirtualNode read GetCurrent;
   end;
 
-  TVTVirtualNodeEnumeration = {$ifdef COMPILER_10_UP}record{$else}object{$endif}
+  TVTVirtualNodeEnumeration = record
   private
     FMode: TVZVirtualNodeEnumerationMode;
     FTree: TBaseVirtualTree;
@@ -3079,7 +3079,10 @@ type
     function GetNodeAt(const P: TPoint): PVirtualNode; overload; inline;
     function GetNodeAt(X, Y: Integer): PVirtualNode; overload;
     function GetNodeAt(X, Y: Integer; Relative: Boolean; var NodeTop: Integer): PVirtualNode; overload;
-    function GetNodeData(Node: PVirtualNode): Pointer;
+    function GetNodeData(Node: PVirtualNode): Pointer; overload;
+    function GetNodeData<T>(pNode: PVirtualNode): T; overload; inline;
+    function GetNodeDataAt<T:class>(pXCoord: Integer; pYCoord: Integer): T;
+    function GetFirstSelectedNodeData<T>(): T;
     function GetNodeLevel(Node: PVirtualNode): Cardinal;
     function GetPrevious(Node: PVirtualNode; ConsiderChildrenAbove: Boolean = False): PVirtualNode;
     function GetPreviousChecked(Node: PVirtualNode; State: TCheckState = csCheckedNormal;
@@ -3266,7 +3269,7 @@ type
 
   TCustomVirtualStringTree = class;
 
-  // Edit support classes.
+  // Edit support Classes.
   TStringEditLink = class;
 
   { TVTEdit }
@@ -3497,14 +3500,15 @@ type
 
   TVirtualStringTree = class(TCustomVirtualStringTree)
   private
+   
     function GetOptions: TStringTreeOptions;
     procedure SetOptions(const Value: TStringTreeOptions);
+    class constructor Create();
+
   protected
     function GetOptionsClass: TTreeOptionsClass; override;
-    {$if CompilerVersion >= 23}
-    class constructor Create();
-    {$ifend}
   public
+
     property Canvas;
     property RangeX;
     property LastDragEffect;
@@ -3770,11 +3774,9 @@ type
   private
     function GetOptions: TVirtualTreeOptions;
     procedure SetOptions(const Value: TVirtualTreeOptions);
+    class constructor Create();
   protected
     function GetOptionsClass: TTreeOptionsClass; override;
-    {$if CompilerVersion >= 23}
-    class constructor Create();
-    {$ifend}
   public
     property Canvas;
     property LastDragEffect;
@@ -4012,6 +4014,7 @@ procedure GetStringDrawRect(DC: HDC; const S: String; var Bounds: TRect; DrawFor
 function WrapString(DC: HDC; const S: String; const Bounds: TRect; RTL: Boolean;
   DrawFormat: Cardinal): String;
 
+function GetUtilityImages: TCustomImageList;
 procedure ShowError(const Msg: String; HelpContext: Integer);  // [IPK] Surface this to interface
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -4655,6 +4658,14 @@ begin
 end;
 
 //----------------- utility functions ----------------------------------------------------------------------------------
+
+function GetUtilityImages: TCustomImageList; // [IPK]
+
+begin
+  Result := UtilityImages; 
+end; 
+
+//----------------------------------------------------------------------------------------------------------------------
 
 procedure ShowError(const Msg: String; HelpContext: Integer);
 
@@ -5496,7 +5507,7 @@ begin
           FCurrentTree.ChangeTreeStatesAsync(EnterStates, LeaveStates);
           lCurrentTree := FCurrentTree; // Save reference in a local variable for later use
           FCurrentTree := nil; //Clear variable to prevent deadlock in CancelValidation. See #434
-          Synchronize(lCurrentTree.UpdateEditBounds);
+          Queue(lCurrentTree.UpdateEditBounds);
         end;
       end;
     end;
@@ -6571,10 +6582,6 @@ end;
 function TVTVirtualNodeEnumeration.GetEnumerator: TVTVirtualNodeEnumerator;
 
 begin
-  {$ifdef COMPILER_10_UP}
-  {$else}
-  Result := TVTVirtualNodeEnumerator.Create;
-  {$endif COMPILER_10_UP}
   Result.FNode := nil;
   Result.FCanModeNext := True;
   Result.FEnumeration := @Self;
@@ -8160,6 +8167,8 @@ var
   NewClickIndex: Integer;
 
 begin
+  if (csDesigning in Header.Treeview.ComponentState) then
+    exit;
   // Convert vertical position to local coordinates.
   //lclheader
   //Inc(P.Y, FHeader.FHeight);
@@ -8411,7 +8420,7 @@ var
   I, RunningPos: Integer;
 
 begin
-  if not FNeedPositionsFix and (Force or (UpdateCount = 0)) then
+  if not (csDestroying in FHeader.Treeview.ComponentState) and not FNeedPositionsFix and (Force or (UpdateCount = 0)) then
   begin
     RunningPos := 0;
     for I := 0 to High(FPositionToIndex) do
@@ -9113,7 +9122,7 @@ var
   var
     Y: Integer;
     SavedDC: Integer;
-    ColCaptionText: UnicodeString;
+    ColCaptionText: String;
     ColImageInfo: TVTImageInfo;
     SortIndex: Integer;
     SortGlyphSize: TSize;
@@ -11771,7 +11780,7 @@ function TVTColors.GetBackgroundColor: TColor;
 begin
 // XE2 VCL Style
 {$IF CompilerVersion >= 23}
-  if FOwner.VclStyleEnabled {$IF CompilerVersion >= 24}and (seClient in FOwner.StyleElements){$IFEND} then
+  if FOwner.VclStyleEnabled and (seClient in FOwner.StyleElements) then
     Result := StyleServices.GetStyleColor(scTreeView)
   else
 {$IFEND}
@@ -14294,6 +14303,7 @@ begin
               lNodeHeight := Child.NodeHeight;
               DoMeasureItem(Canvas, Child, lNodeHeight);
               Child.NodeHeight := lNodeHeight;
+              Child.TotalHeight := lNodeHeight;
             end;
             Inc(NewHeight, Child.NodeHeight);
           end;
@@ -16203,7 +16213,7 @@ begin
   begin
     // Create the IAccessibles for the tree view and tree view items, if necessary.
     if FAccessible = nil then
-      FAccessible := GetAccessibilityFactory.CreateIAccessible(Self);
+      FAccessible := TVTAccessibilityFactory.GetAccessibilityFactory.CreateIAccessible(Self);
     if FAccessibleItem = nil then
       FAccessibleItem := GetAccessibilityFactory.CreateIAccessible(Self);
   if Cardinal(Message.LParam) = OBJID_CLIENT then
@@ -20027,6 +20037,8 @@ end;
 procedure TBaseVirtualTree.DoMeasureItem(TargetCanvas: TCanvas; Node: PVirtualNode; var NodeHeight: Integer);
 
 begin
+  if not (vsInitialized in Node.States) then
+    InitNode(Node);
   if Assigned(FOnMeasureItem) then
     FOnMeasureItem(Self, TargetCanvas, Node, NodeHeight);
 end;
@@ -22044,7 +22056,7 @@ begin
   begin
     DoStateChange([tsEditPending]);
     FEditColumn := FFocusedColumn;
-    SetTimer(Handle, EditTimer, FEditDelay, nil);
+    SetTimer(Handle, EditTimer, 0, nil);
   end;
 end;
 
@@ -25399,6 +25411,7 @@ begin
     end;
     Result := Parent.LastChild;
 
+    //TODO: The above code implicitely triggers OnMeasureItem, but the NodeData is not set then. Consider doing this similar to InsertNode() with a combination of MakeNewNode and InternalConnectNode()
     // Check if there is initial user data and there is also enough user data space allocated.
     if Assigned(UserData) then
       if FNodeDataSize >= SizeOf(Pointer) then
@@ -25566,7 +25579,6 @@ begin
       Self.StateImages := StateImages;
       {$if CompilerVersion >= 24}
       Self.StyleElements := StyleElements;
-      {$ifend}
       Self.TabOrder := TabOrder;
       Self.TabStop := TabStop;
       Self.Visible := Visible;
@@ -26318,8 +26330,10 @@ begin
       end;
     end;
 
-    if FUpdateCount = 0 then
-      DoUpdating(usEnd)
+    if FUpdateCount = 0 then begin
+      DoUpdating(usEnd);
+      EnsureNodeSelected();
+    end
     else
       DoUpdating(usUpdate);
   end;
@@ -28228,6 +28242,48 @@ begin
     Result := PByte(@Node.Data) + FTotalInternalDataSize;
     Include(Node.States, vsOnFreeNodeCallRequired); // We now need to call OnFreeNode, see bug #323
   end;
+end;
+
+//----------------------------------------------------------------------------------------------------------------------
+
+function TBaseVirtualTree.GetNodeData<T>(pNode: PVirtualNode): T;
+
+// Returns associated data converted to the type given in the generic part of the function.
+
+begin
+  if Assigned(pNode) then
+    Result := T(Self.GetNodeData(pNode)^)
+  else
+    Result := Default(T);
+end;
+
+//----------------------------------------------------------------------------------------------------------------------
+
+function TBaseVirtualTree.GetNodeDataAt<T>(pXCoord, pYCoord: Integer): T;
+
+// Returns associated data at the specified coordinates converted to the type given in the generic part of the function.
+
+var
+  lNode: PVirtualNode;
+begin
+  lNode := GetNodeAt(pXCoord, pYCoord);
+
+  if not Assigned(lNode) then
+  begin
+    Exit(nil);
+  end;
+
+  Result := T(Self.GetNodeData(lNode)^);
+end;
+
+//----------------------------------------------------------------------------------------------------------------------
+
+function TBaseVirtualTree.GetFirstSelectedNodeData<T>(): T;
+
+// Returns of the first selected node associated data converted to the type given in the generic part of the function.
+
+begin
+  Result := T(Self.GetNodeData(GetFirstSelected())^);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -32994,8 +33050,8 @@ begin
     //       for 9x/Me.
     if vsMultiline in Node.States then
     begin
-      Height := ComputeNodeHeight(Canvas, Node, Column);
       DoPaintText(Node, Canvas, Column, ttNormal);
+      Height := ComputeNodeHeight(Canvas, Node, Column);
       // Disabled node color overrides all other variants.
       if (vsDisabled in Node.States) or not Enabled then
         Canvas.Font.Color := FColors.DisabledColor;
@@ -34985,12 +35041,10 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-{$if CompilerVersion >= 23}
 class constructor TVirtualStringTree.Create();
 begin
   TCustomStyleEngine.RegisterStyleHook(TVirtualStringTree, TVclStyleScrollBarsHook);
 end;
-{$ifend}
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -35060,12 +35114,10 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-{$if CompilerVersion >= 23}
 class constructor TVirtualDrawTree.Create();
 begin
   TCustomStyleEngine.RegisterStyleHook(TVirtualDrawTree, TVclStyleScrollBarsHook);
 end;
-{$ifend}
 
 //----------------------------------------------------------------------------------------------------------------------
 
