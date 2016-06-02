@@ -1,0 +1,5 @@
+# What is the VirtualTreeView version / branch?
+
+# What is the Lazarus and Freepascal version?
+
+# Does the bug occurs also in Delphi?
