@@ -15,13 +15,6 @@
         <DpiAware Value="True"/>
       </XPManifest>
       <Icon Value="0"/>
-      <Resources Count="5">
-        <Resource_0 FileName="Res\Lorem ipsum.uni" Type="RCDATA" ResourceName="LOREM IPSUM"/>
-        <Resource_1 FileName="Res\Transcriptions.bmp" Type="BITMAP" ResourceName="TRANSCRIPTIONS"/>
-        <Resource_2 FileName="Res\Arabic.uni" Type="RCDATA" ResourceName="ARABIC"/>
-        <Resource_3 FileName="Res\Greek.uni" Type="RCDATA" ResourceName="GREEK"/>
-        <Resource_4 FileName="Res\Hebrew.uni" Type="RCDATA" ResourceName="HEBREW"/>
-      </Resources>
     </General>
     <VersionInfo>
       <StringTable ProductVersion=""/>
