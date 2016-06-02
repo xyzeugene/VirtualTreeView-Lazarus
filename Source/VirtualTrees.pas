@@ -4014,7 +4014,7 @@ procedure GetStringDrawRect(DC: HDC; const S: String; var Bounds: TRect; DrawFor
 function WrapString(DC: HDC; const S: String; const Bounds: TRect; RTL: Boolean;
   DrawFormat: Cardinal): String;
 
-function GetUtilityImages: TCustomImageList;
+function GetUtilityImages: TBitmap;
 procedure ShowError(const Msg: String; HelpContext: Integer);  // [IPK] Surface this to interface
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -4659,7 +4659,7 @@ end;
 
 //----------------- utility functions ----------------------------------------------------------------------------------
 
-function GetUtilityImages: TCustomImageList; // [IPK]
+function GetUtilityImages: TBitmap; // [IPK]
 
 begin
   Result := UtilityImages; 
@@ -25579,6 +25579,7 @@ begin
       Self.StateImages := StateImages;
       {$if CompilerVersion >= 24}
       Self.StyleElements := StyleElements;
+      {$endif}
       Self.TabOrder := TabOrder;
       Self.TabStop := TabStop;
       Self.Visible := Visible;
@@ -35043,7 +35044,9 @@ end;
 
 class constructor TVirtualStringTree.Create();
 begin
+  {$ifdef VCLStyleSupport}
   TCustomStyleEngine.RegisterStyleHook(TVirtualStringTree, TVclStyleScrollBarsHook);
+  {$endif}
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -35116,7 +35119,9 @@ end;
 
 class constructor TVirtualDrawTree.Create();
 begin
+  {$ifdef VCLStyleSupport}
   TCustomStyleEngine.RegisterStyleHook(TVirtualDrawTree, TVclStyleScrollBarsHook);
+  {$endif}
 end;
 
 //----------------------------------------------------------------------------------------------------------------------

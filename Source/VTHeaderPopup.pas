@@ -166,10 +166,11 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
-
-procedure TVTHeaderPopupMenu.Popup(x, y: Integer);
 resourcestring
   sResizeToFit = '&Resize All Columns To Fit';
+
+procedure TVTHeaderPopupMenu.Popup(x, y: Integer);
+
 var
   ColPos: TColumnPosition;
   ColIdx: TColumnIndex;
