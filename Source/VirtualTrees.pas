@@ -13801,8 +13801,12 @@ asm
         PUSH    EBX
         PUSH    EDI
         PUSH    ESI
-        MOV     ECX, EDX               //fpc: count is in EDX. Move to ECX
-        MOV     ESI, [EBP+8]           //fpc: TheArray is in EBP+8
+        {$if FPC_FULLVERSION >= 30100}
+        MOV     ESI, EDX
+        {$else}
+        MOV     ECX, EDX               //fpc < 3.1: count is in EDX. Move to ECX
+        MOV     ESI, [EBP+8]           //fpc < 3.1: TheArray is in EBP+8
+        {$endif}
         MOV     EDX, -1
         JCXZ    @@Finish               // Empty list?
         INC     EDX                    // init remaining entries counter
