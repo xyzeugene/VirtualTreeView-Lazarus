@@ -40,7 +40,7 @@ end;"/>
 "/>
     <License Value=" Mozilla Public License 1.1 (MPL 1.1) or GNU Lesser General Public License
 "/>
-    <Version Major="5" Minor="3" Release="2" Build="1"/>
+    <Version Major="5" Minor="5" Release="3" Build="1"/>
     <Files Count="8">
       <Item1>
         <Filename Value="VirtualTrees.pas"/>
@@ -82,7 +82,8 @@ end;"/>
       </Item1>
       <Item2>
         <PackageName Value="lclextensions_package"/>
-        <MinVersion Minor="5" Valid="True"/>
+        <MaxVersion Minor="6"/>
+        <MinVersion Minor="6" Valid="True"/>
       </Item2>
       <Item3>
         <PackageName Value="LCL"/>
