@@ -1,6 +1,9 @@
 unit VTHeaderPopup;
 
 //----------------------------------------------------------------------------------------------------------------------
+//
+// Version 4.7.0
+//
 // The contents of this file are subject to the Mozilla Public License
 // Version 1.1 (the "License"); you may not use this file except in
 // compliance with the License. You may obtain a copy of the License at
@@ -43,7 +46,7 @@ unit VTHeaderPopup;
 //
 // Modified 20 Oct 2002 by Borut Maricic <borut.maricic@pobox.com>.
 //   - Added the possibility to use Troy Wolbrink's Unicode aware popup menu. 
-//     Define the compiler symbol TNT to enable it. You can get Troy's Unicode 
+//     Define the compiler symbol TNT to enable it. You can get Troy's Unicode
 //     controls collection from http://home.ccci.org/wolbrink/tnt/delphi_unicode_controls.htm.
 //
 // Modified 24 Feb 2002 by Ralf Junker <delphi@zeitungsjunge.de>.
@@ -71,7 +74,8 @@ uses
 type
   TVTHeaderPopupOption = (
     poOriginalOrder, // Show menu items in original column order as they were added to the tree.
-    poAllowHideAll   // Allows to hide all columns, including the last one.
+    poAllowHideAll,   // Allows to hide all columns, including the last one.
+    poResizeToFitItem // Adds an item which, if clicks, resizes all columns to fit by callung TVTHeader.AutoFitColumns
   );
   TVTHeaderPopupOptions = set of TVTHeaderPopupOption;
 
@@ -85,12 +89,15 @@ type
     var Cmd: TAddPopupItemType) of object;
   TColumnChangeEvent = procedure(const Sender: TBaseVirtualTree; const Column: TColumnIndex; Visible: Boolean) of object;
 
+  TVTMenuItem = TMenuItem;
+
   TVTHeaderPopupMenu = class(TPopupMenu)
-  private
+  strict private
+    FOptions: TVTHeaderPopupOptions;
+
     FOnAddHeaderPopupItem: TAddHeaderPopupItemEvent;
     FOnColumnChange: TColumnChangeEvent;
-    FOptions: TVTHeaderPopupOptions;
-  protected
+  strict protected
     procedure DoAddHeaderPopupItem(const Column: TColumnIndex; out Cmd: TAddPopupItemType); virtual;
     procedure DoColumnChange(Column: TColumnIndex; Visible: Boolean); virtual;
     procedure OnMenuItemClick(Sender: TObject);
@@ -110,10 +117,10 @@ implementation
 uses
   Classes;
 
+const
+  cResizeToFitMenuItemName = 'VT_ResizeToFitMenuItem';
 type
   TVirtualTreeCast = class(TBaseVirtualTree); // Necessary to make the header accessible.
-  TVTMenuItem = class(TMenuItem)
-  end;
 
 //----------------- TVTHeaderPopupMenu ---------------------------------------------------------------------------------
 
@@ -139,22 +146,28 @@ end;
 procedure TVTHeaderPopupMenu.OnMenuItemClick(Sender: TObject);
 
 begin
-  if PopupComponent is TBaseVirtualTree then
-  begin
-    with TVTMenuItem(Sender),
-      TVirtualTreeCast(PopupComponent).Header.Columns.Items[Tag] do
-    begin
-      if Checked then
-        Options := Options - [coVisible]
-      else
-        Options := Options + [coVisible];
+  if Assigned(PopupComponent) and (PopupComponent is TBaseVirtualTree) then begin
+    if TVTMenuItem(Sender).Name = cResizeToFitMenuItemName then begin
+      TVirtualTreeCast(PopupComponent).Header.AutoFitColumns();
+    end
+    else begin
+      with TVTMenuItem(Sender),
+        TVirtualTreeCast(PopupComponent).Header.Columns.Items[Tag] do
+      begin
+        if Checked then
+          Options := Options - [coVisible]
+        else
+          Options := Options + [coVisible];
 
-       DoColumnChange(TVTMenuItem(Sender).Tag, not Checked);
-    end;
+         DoColumnChange(TVTMenuItem(Sender).Tag, not Checked);
+      end;
+    end;//else
   end;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+resourcestring
+  sResizeToFit = '&Resize All Columns To Fit';
 
 procedure TVTHeaderPopupMenu.Popup(x, y: Integer);
 
@@ -168,35 +181,29 @@ var
   VisibleCounter: Cardinal;
   VisibleItem: TVTMenuItem;
 
-  CurrentMenuItem: TMenuItem;
-
 begin
-  if PopupComponent is TBaseVirtualTree then
+  if Assigned(PopupComponent) and (PopupComponent is TBaseVirtualTree) then
   begin
-    // Delete existing VT menu items. Keep normal ones
+    // Delete existing menu items.
     while Items.Count > 0 do
-    begin
-      CurrentMenuItem := Items[Items.Count - 1];
-      if CurrentMenuItem is TVTMenuItem then
-        CurrentMenuItem.Free
-      else
-        break;
-    end;
+      Items[0].Free;
+
+    if poResizeToFitItem in Self.Options then begin
+      NewMenuItem := NewItem(sResizeToFit, 0, False, True, OnMenuItemClick, 0, cResizeToFitMenuItemName);
+      Items.Add(NewMenuItem);
+      Items.Add(NewLine());
+    end;//poResizeToFitItem
 
     // Add column menu items.
     with TVirtualTreeCast(PopupComponent).Header do
     begin
-      if Columns.Count = 0 then
-        Exit;
+      if hoShowImages in Options then
+        Self.Images := Images
+      else
+        // Remove a possible reference to image list of another tree previously assigned.
+        Self.Images := nil;
       VisibleItem := nil;
       VisibleCounter := 0;
-      //add separator if necessary
-      if Items.Count > 0 then
-      begin
-        NewMenuItem := TVTMenuItem.Create(Self);
-        NewMenuItem.Caption := cLineCaption;
-        Items.Add(NewMenuItem);
-      end;
       for ColPos := 0 to Columns.Count - 1 do
       begin
         if poOriginalOrder in FOptions then
@@ -215,6 +222,7 @@ begin
             NewMenuItem.Tag := ColIdx;
             NewMenuItem.Caption := Text;
             NewMenuItem.Hint := Hint;
+            NewMenuItem.ImageIndex := ImageIndex;
             NewMenuItem.Checked := coVisible in Options;
             NewMenuItem.OnClick := OnMenuItemClick;
             if Cmd = apDisabled then
