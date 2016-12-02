@@ -1,13 +1,19 @@
 unit Main;
 
+{$MODE Delphi}
+{.$define DEBUG_VTV}
+
 // Demonstration project for TVirtualStringTree to generally show how to get started.
 // Written by Mike Lischke.
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  VirtualTrees, StdCtrls, ExtCtrls;
+  {$ifdef DEBUG_VTV}
+  vtlogger, ipcchannel,
+  {$endif}
+  LCLIntf, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  VirtualTrees, StdCtrls, ExtCtrls, LResources, Buttons;
 
 type
   TMainForm = class(TForm)
@@ -21,13 +27,12 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ClearButtonClick(Sender: TObject);
     procedure AddButtonClick(Sender: TObject);
-    procedure VSTGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-      TextType: TVSTTextType; var Text: UnicodeString);
+    procedure VSTGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+      var Text: String);
     procedure VSTFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure VSTInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
       var InitialStates: TVirtualNodeInitStates);
     procedure CloseButtonClick(Sender: TObject);
-    procedure VSTStartDrag(Sender: TObject; var DragObject: TDragObject);
   end;
 
 var
@@ -37,7 +42,8 @@ var
 
 implementation
 
-{$R *.DFM}
+{$R *.lfm}
+
 
 type
   // This is a very simple record we use to store data in the nodes.
@@ -46,7 +52,7 @@ type
   // Extend it to whatever your application needs.
   PMyRec = ^TMyRec;
   TMyRec = record
-    Caption: WideString;
+    Caption: String;
   end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -54,10 +60,12 @@ type
 procedure TMainForm.FormCreate(Sender: TObject);
 
 begin
-  // We assign the OnGetText handler manually to keep the demo source code compatible
-  // with older Delphi versions after using UnicodeString instead of WideString.
-  VST.OnGetText := VSTGetText;
-
+  {$ifdef DEBUG_VTV}
+  Logger.ActiveClasses:=[];//[lcScroll,lcPaint];
+  Logger.Channels.Add(TIPCChannel.Create);
+  Logger.Clear;
+  Logger.MaxStackCount:=10;
+  {$endif}
   // Let the tree know how much data space we need.
   VST.NodeDataSize := SizeOf(TMyRec);
   // Set an initial number of nodes.
@@ -89,7 +97,7 @@ procedure TMainForm.AddButtonClick(Sender: TObject);
 var
   Count: Cardinal;
   Start: Cardinal;
-
+  
 begin
   // Add some nodes to the treeview.
   Screen.Cursor := crHourGlass;
@@ -119,16 +127,14 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-
-procedure TMainForm.VSTGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  TextType: TVSTTextType; var Text: UnicodeString);
+procedure TMainForm.VSTGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+  var Text: String);
 
 var
   Data: PMyRec;
 
 begin
   // A handler for the OnGetText event is always needed as it provides the tree with the string data to display.
-  // Note that we are always using WideString.
   Data := Sender.GetNodeData(Node);
   if Assigned(Data) then
     Text := Data.Caption;
@@ -146,7 +152,8 @@ begin
   // Explicitely free the string, the VCL cannot know that there is one but needs to free
   // it nonetheless. For more fields in such a record which must be freed use Finalize(Data^) instead touching
   // every member individually.
-  Finalize(Data^);
+  if Assigned(Data) then
+    Data.Caption := '';
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -177,14 +184,6 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure TMainForm.VSTStartDrag(Sender: TObject; var DragObject: TDragObject);
-
-begin
-  DragObject := TDragObject.Create;
-end;
-
-//----------------------------------------------------------------------------------------------------------------------
 
 end.
-
 
