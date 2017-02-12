@@ -27,7 +27,7 @@ end;
 procedure Register;
 
 begin
-  RegisterComponentEditor([TVirtualDrawTree, TVirtualStringTree], TVirtualTreeEditor);
+  RegisterComponentEditor([TCustomVirtualDrawTree, TCustomVirtualStringTree], TVirtualTreeEditor);
   RegisterUnit('VirtualTrees', @RegisterUnitVirtualTrees);
   RegisterUnit('VTHeaderPopup', @RegisterUnitVTHeaderPopup);
 end;
