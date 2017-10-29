@@ -2,6 +2,9 @@ unit VirtualTrees;
 
 {$mode delphi}{$H+}
 {$packset 1}
+{$if not Defined(CPU386)}
+{$define PACKARRAYPASCAL}
+{$endif}
 
 // The contents of this file are subject to the Mozilla Public License
 // Version 1.1 (the "License"); you may not use this file except in compliance
@@ -5143,11 +5146,17 @@ function HasMMX: Boolean;
 
 // Helper method to determine whether the current processor supports MMX.
 
-{$ifdef CPU64}
+{$if not Defined(CPU386)}
+begin
+  Result := False;
+end;
+
+{$elseif Defined(CPU64)}
 begin
   // We use SSE2 in the "MMX-functions"
   Result := True;
 end;
+
 {$else}
 asm
         PUSH    EBX
