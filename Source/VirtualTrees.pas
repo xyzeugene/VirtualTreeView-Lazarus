@@ -2,6 +2,9 @@ unit VirtualTrees;
 
 {$mode delphi}{$H+}
 {$packset 1}
+{$if not Defined(CPU386)}
+{$define PACKARRAYPASCAL}
+{$endif}
 
 // Version 4.8.7
 //
@@ -4897,7 +4900,14 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
-{$ifdef CPU64}
+{$if not Defined(CPU386)}
+
+function HasMMX: Boolean;
+begin
+  Result := False;
+end;
+
+{$elseif Defined(CPU64)}
 
 function HasMMX: Boolean;
 begin
