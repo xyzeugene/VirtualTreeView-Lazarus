@@ -28258,7 +28258,7 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
-{
+
 function TBaseVirtualTree.GetNodeData<T>(pNode: PVirtualNode): T;
 
 // Returns associated data converted to the type given in the generic part of the function.
@@ -28298,7 +28298,7 @@ function TBaseVirtualTree.GetFirstSelectedNodeData<T>(): T;
 begin
   Result := T(Self.GetNodeData(GetFirstSelected())^);
 end;
- }
+
 //----------------------------------------------------------------------------------------------------------------------
 
 function TBaseVirtualTree.GetNodeLevel(Node: PVirtualNode): Cardinal;
